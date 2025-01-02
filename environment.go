@@ -18,11 +18,9 @@ func (f *Waves) DefaultColor() tcell.Color {
 
 func (f *Waves) Render(r *Renderer) (string, string) {
 	width, _ := r.screen.Size()
-	src := rand.NewPCG(uint64(width), uint64(f.cycle))
 
-	// Create a new random number generator with the source
+	src := rand.NewPCG(uint64(width), uint64(f.cycle))
 	rng := rand.New(src)
-	//  rand.Seed()
 
 	art := strings.Repeat("~", width) + "\n"
 	colors := strings.Repeat("b", width) + "\n"

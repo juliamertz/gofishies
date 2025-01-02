@@ -1,48 +1,54 @@
 package main
 
 import (
+	"math/rand/v2"
+	"time"
+
 	"github.com/gdamore/tcell/v2"
 )
 
 type Seaweed struct {
 	Pos    Pos
 	length int
-	cycle  int
+	stage  bool
 }
 
 func (f *Seaweed) DefaultColor() tcell.Color {
-  return tcell.ColorGreen
+	return tcell.ColorGreen
 }
 
-func (f *Seaweed) Render(r *Renderer) (string, string) {
+func (s *Seaweed) Render(r *Renderer) (string, string) {
 	var art []string
 	var colors []string
-
-	for i := 0; i < f.length; i++ {
-		if f.cycle < 10 {
+	stage := s.stage
+	for i := 0; i < s.length; i++ {
+		if stage {
 			art = append(art, " )")
 			art = append(art, "( ")
 		} else {
 			art = append(art, "( ")
 			art = append(art, " )")
 		}
+		stage = !stage
 		colors = append(colors, "gg")
 		colors = append(colors, "gg")
 	}
 
-  compareArtStrings(join(art), join(colors))
+	compareArtStrings(join(art), join(colors))
 
 	return join(art), join(colors)
 }
 
-func (f *Seaweed) GetPos() Pos {
-	return f.Pos
+func (s *Seaweed) GetPos() Pos {
+	return s.Pos
 }
 
-func (f *Seaweed) Tick(r *Renderer) {
-	if f.cycle == 20 {
-		f.cycle = 0
-	} else {
-		f.cycle++
+func (s *Seaweed) Tick(r *Renderer) {
+	src := rand.NewPCG(uint64(s.length), uint64(time.Now().UnixNano()))
+	rng := rand.New(src)
+	n := rng.IntN(6)
+
+	if n == 1 {
+		s.stage = !s.stage
 	}
 }

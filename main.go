@@ -32,7 +32,8 @@ func main() {
 			&Goldfish{Pos: Pos{X: 0, Y: 15}},
 			// &Block{Pos: Pos{X: width - 20, Y: 0}},
 			&Whale{Pos: Pos{X: width, Y: 20}},
-			&Seaweed{Pos: Pos{X: 10, Y: height - 6}, length: 3},
+			&Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
+			&Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 3},
 			&Waves{Pos: Pos{X: 0, Y: 5}},
 		}}
 

@@ -106,6 +106,7 @@ type Renderer struct {
 	screen tcell.Screen
 	canvas Canvas
 
+  maxEntities uint32
 	paused   bool
 	tickRate int
 
@@ -156,7 +157,6 @@ func (r *Renderer) Draw(screen tcell.Screen) {
 func compareArtStrings(art string, colors string) {
 	artLines := strings.Split(art, "\n")
 	colorLines := strings.Split(colors, "\n")
-
 	firstLineLength := len(artLines[0])
 
 	for i, line := range artLines {
