@@ -1,17 +1,17 @@
 package main
 
 import (
-	"gofishies/ansi"
+	"github.com/gdamore/tcell/v2"
 )
 
 type Seaweed struct {
-	Pos    ansi.Pos
+	Pos    Pos
 	length int
 	cycle  int
 }
 
-func (f *Seaweed) DefaultColor() *int {
-	return ansi.ColorFromByte('c')
+func (f *Seaweed) DefaultColor() tcell.Color {
+  return tcell.ColorGreen
 }
 
 func (f *Seaweed) Render(r *Renderer) (string, string) {
@@ -30,10 +30,12 @@ func (f *Seaweed) Render(r *Renderer) (string, string) {
 		colors = append(colors, "gg")
 	}
 
+  compareArtStrings(join(art), join(colors))
+
 	return join(art), join(colors)
 }
 
-func (f *Seaweed) GetPos() ansi.Pos {
+func (f *Seaweed) GetPos() Pos {
 	return f.Pos
 }
 

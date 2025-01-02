@@ -1,12 +1,11 @@
 package main
 
 import (
-	"fmt"
-	"gofishies/ansi"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/gdamore/tcell/v2"
 	"golang.org/x/term"
 )
 
@@ -20,68 +19,52 @@ func check(err error) {
 }
 
 func main() {
-	cooked, err := term.MakeRaw(int(os.Stdin.Fd()))
-	check(err)
-	defer term.Restore(int(os.Stdin.Fd()), cooked)
+	// cooked, err := term.MakeRaw(int(os.Stdin.Fd()))
+	// check(err)
+	// defer term.Restore(int(os.Stdin.Fd()), cooked)
 
 	width, height, err := term.GetSize(int(os.Stdin.Fd()))
 	check(err)
 	renderer := Renderer{
+		tickRate: 50,
+    paused: false,
 		entities: []Renderable{
-			&Goldfish{Pos: ansi.Pos{X: 0, Y: 0}},
-			// &Block{Pos: ansi.Pos{X: width - 20, Y: 0}},
-			&Whale{Pos: ansi.Pos{X: width, Y: 20}},
-			&Seaweed{Pos: ansi.Pos{X: 10, Y: height - 6}, length: 3},
+			&Goldfish{Pos: Pos{X: 0, Y: 15}},
+			// &Block{Pos: Pos{X: width - 20, Y: 0}},
+			&Whale{Pos: Pos{X: width, Y: 20}},
+			&Seaweed{Pos: Pos{X: 10, Y: height - 6}, length: 3},
+			&Waves{Pos: Pos{X: 0, Y: 5}},
 		}}
 
-	tickRate := 50
 
-	fmt.Println(ansi.Clear)
+	screen, err := tcell.NewScreen()
+  renderer.screen = screen
+	check(err)
+	if err = screen.Init(); err != nil {
+		panic(err)
+	}
+	defer screen.Fini()
+
 	renderer.InitCells()
-	renderer.Draw()
+
+
+	go inputHandler(&renderer)
+
+  renderer.screen.Clear()
+	renderer.Draw(screen)
 
 	i := 0
 
-	go func() {
-		var b []byte = make([]byte, 1)
-		for {
-			os.Stdin.Read(b)
-
-			if len(b) < 1 {
-				continue
-			}
-			switch b[0] {
-			// ctrl-c
-			case 3:
-				term.Restore(int(os.Stdin.Fd()), cooked)
-				os.Exit(0)
-				// space
-			case 32:
-				renderer.paused = !renderer.paused
-				// j
-			case 106:
-				tickRate += 5
-				// k
-			case 107:
-				if tickRate <= 5 {
-					continue
-				}
-				tickRate -= 5
-			}
-			// fmt.Println("I got the byte", b, "("+string(b)+")")
-		}
-	}()
-
 	for i < cycles {
 		if renderer.paused {
-			time.Sleep(time.Duration(tickRate) * time.Millisecond)
+			time.Sleep(time.Duration(renderer.tickRate) * time.Millisecond)
 			continue
 		}
 		renderer.InitCells()
 		renderer.Tick()
-		time.Sleep(time.Duration(tickRate) * time.Millisecond)
-		fmt.Println(ansi.Clear)
-		renderer.Draw()
+		time.Sleep(time.Duration(renderer.tickRate) * time.Millisecond)
+    renderer.screen.Clear()
+		renderer.Draw(screen)
 	}
 
 	time.Sleep(5 * time.Second)
@@ -89,4 +72,34 @@ func main() {
 
 func join(lines []string) string {
 	return strings.Join(lines, "\n")
+}
+
+func inputHandler(r *Renderer) {
+	var b []byte = make([]byte, 1)
+	for {
+		os.Stdin.Read(b)
+		if len(b) < 1 {
+			continue
+		}
+		switch b[0] {
+		// ctrl-c
+		case 3:
+      r.screen.Fini()
+			os.Exit(0)
+			// space
+		case 32:
+			r.paused = !r.paused
+			// j
+		case 106:
+			r.tickRate += 5
+			// k
+		case 107:
+			if r.tickRate <= 5 {
+				continue
+			}
+			r.tickRate -= 5
+		}
+		// fmt.Println("I got the byte", b, "("+string(b)+")")
+	}
+
 }

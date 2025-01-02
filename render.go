@@ -1,7 +1,6 @@
 package main
 
 import (
-	"gofishies/ansi"
 	"os"
 	"strings"
 
@@ -9,20 +8,26 @@ import (
 	"golang.org/x/term"
 )
 
+type Cell struct {
+	Content byte
+	Fg      tcell.Color
+	Bg      int
+}
+
 type Canvas struct {
-	cells [][]ansi.Cell
+	cells [][]Cell
 }
 
 func NewCanvas(width int, height int) Canvas {
-	buff := make([][]ansi.Cell, height, height)
+	buff := make([][]Cell, height, height)
 	for i := range buff {
-		buff[i] = make([]ansi.Cell, width, width)
+		buff[i] = make([]Cell, width, width)
 	}
 	return Canvas{cells: buff}
 }
 
 // Merge canvas cells into parent canvas
-func (c *Canvas) MergeAt(art Canvas, pos ansi.Pos) {
+func (c *Canvas) MergeAt(art Canvas, pos Pos) {
 	y := pos.Y
 	x := pos.X
 
@@ -41,16 +46,20 @@ func (c *Canvas) MergeAt(art Canvas, pos ansi.Pos) {
 	}
 }
 
-func CanvasFromArt(art string, colors string) Canvas {
+func CanvasFromArt(art string, colors string, defaultColor tcell.Color) Canvas {
 	lines := strings.Split(art, "\n")
 	colorLines := strings.Split(colors, "\n")
 	buff := NewCanvas(len(lines[0]), len(lines))
 
 	for y, line := range lines {
 		for x, ch := range line {
-			color := ansi.ColorFromByte(byte(colorLines[y][x]))
-			buff.cells[y][x] = ansi.Cell{
-				Fg:      ansi.ForegroundColor(*color),
+			color := ColorFromRune(rune(colorLines[y][x]))
+			if *color == tcell.ColorDefault {
+				color = &defaultColor
+			}
+
+			buff.cells[y][x] = Cell{
+				Fg:      *color,
 				Content: byte(ch),
 			}
 		}
@@ -58,20 +67,50 @@ func CanvasFromArt(art string, colors string) Canvas {
 	return buff
 }
 
+func ColorFromRune(r rune) *tcell.Color {
+	var color tcell.Color
+	switch r {
+	case 'r':
+		color = tcell.ColorRed
+	case 'g':
+		color = tcell.ColorGreen
+	case 'y':
+		color = tcell.ColorYellow
+	case 'b':
+		color = tcell.ColorBlue
+	case 'p':
+		color = tcell.ColorPurple
+	case 'c':
+		color = tcell.ColorLightCyan
+	case 'w':
+		color = tcell.ColorWhite
+	case 'd':
+		color = tcell.ColorDefault
+	}
+	return &color
+}
+
 type Renderable interface {
 	Render(r *Renderer) (string, string)
 	Tick(*Renderer)
-	GetPos() ansi.Pos
-	DefaultColor() *int
+	GetPos() Pos
+	DefaultColor() tcell.Color
+}
+
+type Pos struct {
+	X int
+	Y int
 }
 
 type Renderer struct {
-	paused bool
+	screen tcell.Screen
 	canvas Canvas
 
-	entities []Renderable
-	// Trails or bubbles that fish can leave behind
-	fleeting []Renderable
+	paused   bool
+	tickRate int
+
+	entities  []Renderable
+	particles []Renderable
 }
 
 // Creates new 2 dimensional cell slice and discards the previous one
@@ -89,104 +128,40 @@ func (r *Renderer) Tick() {
 	}
 }
 
-func (r *Renderer) Draw() {
+func (r *Renderer) Draw(screen tcell.Screen) {
 	for _, e := range r.entities {
+		if r == nil {
+			panic("draw was called but r is nil")
+		}
 		art, colors := e.Render(r)
-		c := CanvasFromArt(art, colors)
+		c := CanvasFromArt(art, colors, e.DefaultColor())
 		r.canvas.MergeAt(c, e.GetPos())
 	}
-	screen, err := tcell.NewScreen()
-  check(err)
-	if err = screen.Init(); err != nil {
-    panic(err)
-	}
-	defer screen.Fini()
 
 	// print each cell of final canvas
 	// ansi.Print(ansi.MoveHome)
 	for y, line := range r.canvas.cells {
-		for x, _ := range line {
-      screen.SetContent(x,y, 'X', nil, tcell.StyleDefault)
-			// if cell.Content == 0 {
-			// 	buff += " "
-			// }
-			//
-			// buff += ansi.Color(int(cell.Fg))
-			// buff += string(cell.Content)
-
+		for x, cell := range line {
+			style := tcell.StyleDefault.Foreground(cell.Fg)
+			screen.SetContent(x, y, rune(cell.Content), nil, style)
+			// screen.SetContent(x, y, rune(cell.Content), nil, style)
 		}
 	}
-  screen.Show()
 
-	// for _, e := range r.entities {
-	// 	art, colors := e.Render()
-	//
-	// 	rendered, printPos := cutAndColorize(art, colors, e.DefaultColor(), e.GetPos())
-	// 	if rendered == nil {
-	// 		continue
-	// 	}
-	//
-	// 	lines := strings.Split(*rendered, "\n")
-	// 	ansi.PrintLines(printPos, lines)
-	// }
+	// screen.Show()
+	screen.Sync()
 }
 
-// returns nil if the rendered string is completely out of view
-// func cutAndColorize(art string, colors string, base *int, pos ansi.Pos) (*string, ansi.Pos) {
-// 	cutArt, printPos := cutVisible(art, pos)
-// 	cutColors, _ := cutVisible(colors, pos)
-// 	if cutArt == nil || cutColors == nil {
-// 		return nil, printPos
-// 	}
-// 	colored := ansi.ColorizeArt(*cutArt, *cutColors, *base)
-// 	return &colored, printPos
-// }
-//
-// func cutVisible(content string, pos ansi.Pos) (*string, ansi.Pos) {
-// 	width, height, err := term.GetSize(int(os.Stdin.Fd()))
-// 	if err != nil {
-// 		panic("unable to get terminal size")
-// 	}
-//
-// 	lines := strings.Split(content, "\n")
-// 	lineLen := len(lines[0]) - 1
-// 	lastIdx := len(lines) - 1
-// 	printPos := pos
-//
-// 	if pos.Y < 0 {
-// 		skip := pos.Y * -1
-// 		printPos.Y = 0
-// 		lines = slices.Delete(lines, 0, skip)
-// 	}
-//
-// 	if (pos.Y + lastIdx) > height {
-// 		skip := (pos.Y + lastIdx) - height
-// 		if skip > lastIdx {
-// 			return nil, printPos
-// 		}
-// 		start := lastIdx - skip
-// 		lines = slices.Delete(lines, start, lastIdx)
-// 	}
-//
-// 	if pos.X < 0 {
-// 		start := pos.X * -1
-// 		if start > lineLen {
-// 			return nil, printPos
-// 		}
-// 		printPos.X = 0
-// 		for idx, line := range lines {
-// 			lines[idx] = line[start:]
-// 		}
-// 	} else if (pos.X + lineLen) > width {
-// 		offscreenCells := lineLen - (width-(pos.X+lineLen))*-1
-// 		if offscreenCells < 0 {
-// 			return nil, printPos
-// 		}
-// 		for idx, line := range lines {
-// 			lines[idx] = line[:offscreenCells]
-// 		}
-// 	}
-//
-// 	res := strings.Join(lines, "\n")
-// 	return &res, printPos
-// }
+// Check if art and color map are of the exact same lengths and are normalized
+func compareArtStrings(art string, colors string) {
+	artLines := strings.Split(art, "\n")
+	colorLines := strings.Split(colors, "\n")
+
+	firstLineLength := len(artLines[0])
+
+	for i, line := range artLines {
+		if len(line) != firstLineLength || len(colorLines[i]) != firstLineLength {
+			panic("invalid art strings: " + art + colors)
+		}
+	}
+}

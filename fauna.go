@@ -1,18 +1,18 @@
 package main
 
 import (
-	"gofishies/ansi"
+	"github.com/gdamore/tcell/v2"
 )
 
 // Whale
 
 type Whale struct {
-	Pos   ansi.Pos
+	Pos   Pos
 	cycle int
 }
 
-func (f *Whale) DefaultColor() *int {
-	return ansi.ColorFromByte('g')
+func (f *Whale) DefaultColor() tcell.Color {
+	return tcell.ColorGreen
 }
 
 func (f *Whale) Render(r *Renderer) (string, string) {
@@ -27,24 +27,26 @@ o      ______/~/~/~/__           /((
                                  \((`
 
 	colors :=
-		` o                                  
-o      ______/~/~/~/__           /((
-  o  // __            ====__    /_((
- o  //  wgg       ))))      ===/__((
+		`                                    
+       ______/~/~/~/__           /((
+     // __            ====__    /_((
+    //  wgg       ))))      ===/__((
     ))           )))))))        __((
-    \\     \)     ))))    __===\ _((
-     \\_______________====      \_((
+    ww     ww     wwww    __===\ _((
+     wwwwwwwwwwwwwwwwwwwww      \_((
                                  \((`
+
+	compareArtStrings(art, colors)
 
 	return art, colors
 }
 
-func (f *Whale) GetPos() ansi.Pos {
+func (f *Whale) GetPos() Pos {
 	return f.Pos
 }
 
 func (f *Whale) Tick(r *Renderer) {
-	if f.cycle == 6 {
+	if f.cycle == 10 {
 		f.cycle = 0
 		f.Pos.X--
 	} else {
@@ -58,19 +60,19 @@ func (f *Whale) Tick(r *Renderer) {
 // Bubble
 
 type Bubble struct {
-	Pos   ansi.Pos
+	Pos   Pos
 	cycle int
 }
 
-func (f *Bubble) DefaultColor() *int {
-	return ansi.ColorFromByte('w')
+func (f *Bubble) DefaultColor() tcell.Color {
+	return tcell.ColorWhite
 }
 
 func (f *Bubble) Render(r *Renderer) (string, string) {
 	return "o", "w"
 }
 
-func (f *Bubble) GetPos() ansi.Pos {
+func (f *Bubble) GetPos() Pos {
 	return f.Pos
 }
 
@@ -86,28 +88,39 @@ func (f *Bubble) Tick(r *Renderer) {
 // Goldfish
 
 type Goldfish struct {
-	Pos   ansi.Pos
+	Pos   Pos
 	cycle int
 }
 
-func (f *Goldfish) DefaultColor() *int {
-	return ansi.ColorFromByte('c')
+func (f *Goldfish) DefaultColor() tcell.Color {
+	return tcell.ColorOrange
 }
 
 func (g *Goldfish) Render(r *Renderer) (string, string) {
-	art := []string{
-		"  _ ",
-		"><_>",
+	var art []string
+	if g.cycle < 5 {
+		art = []string{
+			"  _ ",
+			"><_>",
+		}
+	} else {
+		art = []string{
+			"  _ ",
+			"~<_>",
+		}
 	}
 
 	colors := []string{
 		"  c ",
 		"yycc",
 	}
+
+	compareArtStrings(join(art), join(colors))
+
 	return join(art), join(colors)
 }
 
-func (g *Goldfish) GetPos() ansi.Pos {
+func (g *Goldfish) GetPos() Pos {
 	return g.Pos
 }
 
@@ -124,7 +137,7 @@ func (g *Goldfish) Tick(r *Renderer) {
 // // TESTING: block
 //
 // type Block struct {
-// 	Pos ansi.Pos
+// 	Pos Pos
 // }
 //
 // func (f *Block) Render() *string {
@@ -141,7 +154,7 @@ func (g *Goldfish) Tick(r *Renderer) {
 // 	return cutAndColorize(join(art), join(colors), 'g', f.Pos)
 // }
 //
-// func (f *Block) GetPos() ansi.Pos {
+// func (f *Block) GetPos() Pos {
 // 	return f.Pos
 // }
 //
