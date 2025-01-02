@@ -127,10 +127,23 @@ func (r *Renderer) Tick() {
 	for _, e := range r.entities {
 		e.Tick(r)
 	}
+	for _, e := range r.particles {
+		e.Tick(r)
+	}
 }
 
 func (r *Renderer) Draw(screen tcell.Screen) {
+  // render entities
 	for _, e := range r.entities {
+		if r == nil {
+			panic("draw was called but r is nil")
+		}
+		art, colors := e.Render(r)
+		c := CanvasFromArt(art, colors, e.DefaultColor())
+		r.canvas.MergeAt(c, e.GetPos())
+	}
+  // render particles
+	for _, e := range r.particles {
 		if r == nil {
 			panic("draw was called but r is nil")
 		}

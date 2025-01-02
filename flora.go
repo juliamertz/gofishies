@@ -46,7 +46,7 @@ func (s *Seaweed) GetPos() Pos {
 func (s *Seaweed) Tick(r *Renderer) {
 	src := rand.NewPCG(uint64(s.length), uint64(time.Now().UnixNano()))
 	rng := rand.New(src)
-	n := rng.IntN(6)
+	n := rng.IntN(60)
 
 	if n == 1 {
 		s.stage = !s.stage

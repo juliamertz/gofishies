@@ -9,6 +9,7 @@ import (
 type Whale struct {
 	Pos   Pos
 	cycle int
+  tick int
 }
 
 func (f *Whale) DefaultColor() tcell.Color {
@@ -17,10 +18,10 @@ func (f *Whale) DefaultColor() tcell.Color {
 
 func (f *Whale) Render(r *Renderer) (string, string) {
 	art :=
-		` o                                  
-o      ______/~/~/~/__           /((
-  o  // __            ====__    /_((
- o  //  @))       ))))      ===/__((
+		`                                    
+       ______/~/~/~/__           /((
+     // __            ====__    /_((
+    //  @))       ))))      ===/__((
     ))           )))))))        __((
     \\     \)     ))))    __===\ _((
      \\_______________====      \_((
@@ -46,14 +47,14 @@ func (f *Whale) GetPos() Pos {
 }
 
 func (f *Whale) Tick(r *Renderer) {
-	if f.cycle == 10 {
-		f.cycle = 0
+	if f.tick == 10 {
+		f.tick = 0
 		f.Pos.X--
+    if RandOneIn(20) {
+      r.particles = append(r.particles, &Bubble{Pos: f.Pos})
+    }
 	} else {
-		if f.cycle == 3 {
-			// r.fleeting = append(r.fleeting, &Bubble{Pos: f.Pos})
-		}
-		f.cycle++
+		f.tick++
 	}
 }
 
@@ -77,9 +78,9 @@ func (f *Bubble) GetPos() Pos {
 }
 
 func (f *Bubble) Tick(r *Renderer) {
-	if f.cycle == 6 {
+	if f.cycle == 20  {
 		f.cycle = 0
-		f.Pos.Y++
+		f.Pos.Y--
 	} else {
 		f.cycle++
 	}
@@ -132,32 +133,3 @@ func (g *Goldfish) Tick(r *Renderer) {
 		g.cycle++
 	}
 }
-
-//
-// // TESTING: block
-//
-// type Block struct {
-// 	Pos Pos
-// }
-//
-// func (f *Block) Render() *string {
-// 	art := []string{
-// 		"rrbnggy",
-// 		"rbrnbyb",
-// 	}
-//
-// 	colors := []string{
-// 		"rrb ggy",
-// 		"rbr byb",
-// 	}
-//
-// 	return cutAndColorize(join(art), join(colors), 'g', f.Pos)
-// }
-//
-// func (f *Block) GetPos() Pos {
-// 	return f.Pos
-// }
-//
-// func (f *Block) Tick(r *Renderer) {
-// 	f.Pos.X--
-// }

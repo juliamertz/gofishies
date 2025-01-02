@@ -23,17 +23,18 @@ func main() {
 	// check(err)
 	// defer term.Restore(int(os.Stdin.Fd()), cooked)
 
+  // TODO: remove off-canvas entities from pool
+
 	width, height, err := term.GetSize(int(os.Stdin.Fd()))
 	check(err)
 	renderer := Renderer{
-		tickRate: 50,
+		tickRate: 5,
     paused: false,
 		entities: []Renderable{
 			&Goldfish{Pos: Pos{X: 0, Y: 15}},
-			// &Block{Pos: Pos{X: width - 20, Y: 0}},
 			&Whale{Pos: Pos{X: width, Y: 20}},
 			&Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
-			&Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 3},
+			&Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 4},
 			&Waves{Pos: Pos{X: 0, Y: 5}},
 		}}
 
