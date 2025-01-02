@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"gofishies/ansi"
 	"os"
 	"slices"
@@ -11,11 +10,14 @@ import (
 )
 
 type Renderable interface {
-	Render() *string
+	Render() (string, string)
 	Tick(*Renderer)
 	GetPos() ansi.Pos
+	DefaultColor() *int
 	// setPos(Pos)
 }
+
+// func ()
 
 func check(err error) {
 	if err != nil {
@@ -24,7 +26,7 @@ func check(err error) {
 }
 
 type Renderer struct {
-  paused bool
+	paused bool
 
 	entities []Renderable
 	// Trails or bubbles that fish can leave behind
@@ -39,69 +41,74 @@ func (r *Renderer) Tick() {
 
 func (r *Renderer) Draw() {
 	for _, e := range r.entities {
-    rendered := e.Render();
-    if rendered == nil {
-      continue
-    }
+		art, colors := e.Render()
+
+		rendered, printPos := cutAndColorize(art, colors, e.DefaultColor(), e.GetPos())
+		if rendered == nil {
+			continue
+		}
+
 		lines := strings.Split(*rendered, "\n")
-		ansi.PrintLines(e.GetPos(), lines)
+		ansi.PrintLines(printPos, lines)
 	}
 }
 
-func cutVisible(content string, pos ansi.Pos) *string {
-	_, height, err := term.GetSize(int(os.Stdin.Fd()))
+// returns nil if the rendered string is completely out of view
+func cutAndColorize(art string, colors string, base *int, pos ansi.Pos) (*string, ansi.Pos) {
+	cutArt, printPos := cutVisible(art, pos)
+	cutColors, _ := cutVisible(colors, pos)
+	if cutArt == nil || cutColors == nil {
+		return nil, printPos
+	}
+	colored := ansi.ColorizeArt(*cutArt, *cutColors, *base)
+	return &colored, printPos
+}
+
+func cutVisible(content string, pos ansi.Pos) (*string, ansi.Pos) {
+	width, height, err := term.GetSize(int(os.Stdin.Fd()))
 	if err != nil {
 		panic("unable to get terminal size")
 	}
 
 	lines := strings.Split(content, "\n")
+	lineLen := len(lines[0]) - 1
+	lastIdx := len(lines) - 1
+	printPos := pos
 
 	if pos.Y < 0 {
 		skip := pos.Y * -1
+		printPos.Y = 0
 		lines = slices.Delete(lines, 0, skip)
 	}
-
-	lastIdx := len(lines) - 1
 
 	if (pos.Y + lastIdx) > height {
 		skip := (pos.Y + lastIdx) - height
 		if skip > lastIdx {
-			return nil
+			return nil, printPos
 		}
 		start := lastIdx - skip
 		lines = slices.Delete(lines, start, lastIdx)
 	}
 
-  if pos.X < 0 {
-    start := pos.X * -1
-    if start > len(lines[0]) -1 {
-      return nil
+	if pos.X < 0 {
+		start := pos.X * -1
+		if start > lineLen {
+			return nil, printPos
+		}
+		printPos.X = 0
+		for idx, line := range lines {
+			lines[idx] = line[start:]
+		}
+	} else if (pos.X + lineLen) > width {
+		offscreenCells := lineLen - (width-(pos.X+lineLen))*-1
+    if offscreenCells < 0 {
+      return nil, printPos
     }
-    for idx, line := range lines {
-      fmt.Print("idx: %d", idx)
-      lines[idx] = line[start:]
-    }
-  }
-
-	// for i := 0; i < len(lines); i++ {
-	//    line := lines[i]
-	//    nextPos := pos
-	// 	if (pos.Y + i) < 0 || (pos.Y + i) > height-1 {
-	// 		continue
-	// 	}
-	//    if pos.X < 0 {
-	//      // continue
-	//      if pos.X + len(line) < 0 {
-	//        continue
-	//      }
-	//      // fmt.Printf("line: %v", line)
-	//      line = line[pos.X * -1:]
-	//      nextPos.X = 0
-	//    }
-	// 	Print(MoveTo(nextPos.Y+i, nextPos.X))
-	// 	Print(line)
-	// }
+		for idx, line := range lines {
+			lines[idx] = line[:offscreenCells]
+		}
+	}
 
 	res := strings.Join(lines, "\n")
-	return &res
+	return &res, printPos
 }

@@ -18,15 +18,16 @@ func main() {
 	check(err)
 	defer term.Restore(int(os.Stdin.Fd()), cooked)
 
-	width, _, err := term.GetSize(int(os.Stdin.Fd()))
+	width, height, err := term.GetSize(int(os.Stdin.Fd()))
 	check(err)
 	renderer := Renderer{entities: []Renderable{
 		&Goldfish{Pos: ansi.Pos{X: 0, Y: 0}},
-		&Block{Pos: ansi.Pos{X: width - 20, Y: 0}},
-		&Whale{Pos: ansi.Pos{X: width - 40, Y: 20}},
+		// &Block{Pos: ansi.Pos{X: width - 20, Y: 0}},
+		&Whale{Pos: ansi.Pos{X: width, Y: 20}},
+    &Seaweed{Pos:ansi.Pos{X: 10, Y: height-6}, length: 3},
 	}}
 
-	tickRate := 100
+	tickRate := 50
 
 	fmt.Println(ansi.Clear)
 	renderer.Draw()
@@ -50,10 +51,13 @@ func main() {
 				renderer.paused = !renderer.paused
 				// j
 			case 106:
-				tickRate += 10
+				tickRate += 5
 				// k
 			case 107:
-				tickRate -= 10
+        if tickRate <= 5 {
+          continue
+        }
+				tickRate -= 5
 			}
 			// fmt.Println("I got the byte", b, "("+string(b)+")")
 		}

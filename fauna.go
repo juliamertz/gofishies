@@ -4,18 +4,6 @@ import (
 	"gofishies/ansi"
 )
 
-
-// returns nil if the rendered string is completely out of view
-func cutAndColorize(art string, colors string, base byte, pos ansi.Pos) *string {
-	cutArt := cutVisible(art, pos)
-	cutColors := cutVisible(colors, pos)
-	if cutArt == nil || cutColors == nil {
-		return nil
-	}
-	colored := ansi.ColorizeArt(*cutArt, *cutColors, *ansi.ColorFromByte(base))
-	return &colored
-}
-
 // Whale
 
 type Whale struct {
@@ -23,9 +11,13 @@ type Whale struct {
 	cycle int
 }
 
-func (f *Whale) Render() *string {
+func (f *Whale) DefaultColor() *int {
+	return ansi.ColorFromByte('g')
+}
+
+func (f *Whale) Render() (string, string) {
 	art :=
-		` o
+		` o                                  
 o      ______/~/~/~/__           /((
   o  // __            ====__    /_((
  o  //  @))       ))))      ===/__((
@@ -35,16 +27,16 @@ o      ______/~/~/~/__           /((
                                  \((`
 
 	colors :=
-		` o
+		` o                                  
 o      ______/~/~/~/__           /((
   o  // __            ====__    /_((
- o  //  @))       ))))      ===/__((
+ o  //  wgg       ))))      ===/__((
     ))           )))))))        __((
     \\     \)     ))))    __===\ _((
      \\_______________====      \_((
                                  \((`
 
-	return cutAndColorize(art, colors, 'g', f.Pos)
+	return art, colors
 }
 
 func (f *Whale) GetPos() ansi.Pos {
@@ -56,6 +48,9 @@ func (f *Whale) Tick(r *Renderer) {
 		f.cycle = 0
 		f.Pos.X--
 	} else {
+		if f.cycle == 3 {
+			r.fleeting = append(r.fleeting, &Bubble{Pos: f.Pos})
+		}
 		f.cycle++
 	}
 }
@@ -67,8 +62,12 @@ type Bubble struct {
 	cycle int
 }
 
-func (f *Bubble) Render() string {
-	return ansi.ColorizeArt("o", " ", *ansi.ColorFromByte('b'))
+func (f *Bubble) DefaultColor() *int {
+	return ansi.ColorFromByte('w')
+}
+
+func (f *Bubble) Render() (string, string) {
+	return "o", "w"
 }
 
 func (f *Bubble) GetPos() ansi.Pos {
@@ -91,18 +90,22 @@ type Goldfish struct {
 	cycle int
 }
 
-func (f *Goldfish) Render() *string {
+func (f *Goldfish) DefaultColor() *int {
+	return ansi.ColorFromByte('c')
+}
+
+func (f *Goldfish) Render() (string, string) {
 	art := []string{
 		"  _ ",
 		"><_>",
 	}
 
 	colors := []string{
-		"    ",
-		"    ",
+		"  c ",
+		"yycc",
 	}
 
-	return cutAndColorize(join(art), join(colors), 'c', f.Pos)
+	return join(art), join(colors)
 }
 
 func (f *Goldfish) GetPos() ansi.Pos {
@@ -118,30 +121,31 @@ func (f *Goldfish) Tick(r *Renderer) {
 	}
 }
 
-// TESTING: block
-
-type Block struct {
-	Pos ansi.Pos
-}
-
-func (f *Block) Render() *string {
-	art := []string{
-		"rrbnggy",
-		"rbrnbyb",
-	}
-
-	colors := []string{
-		"rrb ggy",
-		"rbr byb",
-	}
-
-	return cutAndColorize(join(art), join(colors), 'g', f.Pos)
-}
-
-func (f *Block) GetPos() ansi.Pos {
-	return f.Pos
-}
-
-func (f *Block) Tick(r *Renderer) {
-	f.Pos.X--
-}
+//
+// // TESTING: block
+//
+// type Block struct {
+// 	Pos ansi.Pos
+// }
+//
+// func (f *Block) Render() *string {
+// 	art := []string{
+// 		"rrbnggy",
+// 		"rbrnbyb",
+// 	}
+//
+// 	colors := []string{
+// 		"rrb ggy",
+// 		"rbr byb",
+// 	}
+//
+// 	return cutAndColorize(join(art), join(colors), 'g', f.Pos)
+// }
+//
+// func (f *Block) GetPos() ansi.Pos {
+// 	return f.Pos
+// }
+//
+// func (f *Block) Tick(r *Renderer) {
+// 	f.Pos.X--
+// }
