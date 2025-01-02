@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gdamore/tcell/v2"
 	"golang.org/x/term"
 )
 
@@ -31,10 +32,10 @@ func (c *Canvas) MergeAt(art Canvas, pos ansi.Pos) {
 			continue
 		}
 		for j, cell := range line {
-		// skip column if it falls outside of base canvas
-		if len(c.cells[i]) <= x+j || x+j < 0 {
-			continue
-		}
+			// skip column if it falls outside of base canvas
+			if len(c.cells[i]) <= x+j || x+j < 0 {
+				continue
+			}
 			c.cells[y+i][x+j] = cell
 		}
 	}
@@ -94,22 +95,28 @@ func (r *Renderer) Draw() {
 		c := CanvasFromArt(art, colors)
 		r.canvas.MergeAt(c, e.GetPos())
 	}
+	screen, err := tcell.NewScreen()
+  check(err)
+	if err = screen.Init(); err != nil {
+    panic(err)
+	}
+	defer screen.Fini()
 
 	// print each cell of final canvas
-	ansi.Print(ansi.MoveHome)
-	for _, line := range r.canvas.cells {
-		buff := ""
-		for _, cell := range line {
-			if cell.Content == 0 {
-				buff += " "
-			}
-
-			buff += ansi.Color(int(cell.Fg))
-			buff += string(cell.Content)
+	// ansi.Print(ansi.MoveHome)
+	for y, line := range r.canvas.cells {
+		for x, _ := range line {
+      screen.SetContent(x,y, 'X', nil, tcell.StyleDefault)
+			// if cell.Content == 0 {
+			// 	buff += " "
+			// }
+			//
+			// buff += ansi.Color(int(cell.Fg))
+			// buff += string(cell.Content)
 
 		}
-		ansi.Print(buff)
 	}
+  screen.Show()
 
 	// for _, e := range r.entities {
 	// 	art, colors := e.Render()
