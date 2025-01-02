@@ -15,7 +15,7 @@ func (f *Whale) DefaultColor() *int {
 	return ansi.ColorFromByte('g')
 }
 
-func (f *Whale) Render() (string, string) {
+func (f *Whale) Render(r *Renderer) (string, string) {
 	art :=
 		` o                                  
 o      ______/~/~/~/__           /((
@@ -49,7 +49,7 @@ func (f *Whale) Tick(r *Renderer) {
 		f.Pos.X--
 	} else {
 		if f.cycle == 3 {
-			r.fleeting = append(r.fleeting, &Bubble{Pos: f.Pos})
+			// r.fleeting = append(r.fleeting, &Bubble{Pos: f.Pos})
 		}
 		f.cycle++
 	}
@@ -66,7 +66,7 @@ func (f *Bubble) DefaultColor() *int {
 	return ansi.ColorFromByte('w')
 }
 
-func (f *Bubble) Render() (string, string) {
+func (f *Bubble) Render(r *Renderer) (string, string) {
 	return "o", "w"
 }
 
@@ -94,7 +94,7 @@ func (f *Goldfish) DefaultColor() *int {
 	return ansi.ColorFromByte('c')
 }
 
-func (f *Goldfish) Render() (string, string) {
+func (g *Goldfish) Render(r *Renderer) (string, string) {
 	art := []string{
 		"  _ ",
 		"><_>",
@@ -104,20 +104,19 @@ func (f *Goldfish) Render() (string, string) {
 		"  c ",
 		"yycc",
 	}
-
 	return join(art), join(colors)
 }
 
-func (f *Goldfish) GetPos() ansi.Pos {
-	return f.Pos
+func (g *Goldfish) GetPos() ansi.Pos {
+	return g.Pos
 }
 
-func (f *Goldfish) Tick(r *Renderer) {
-	if f.cycle == 10 {
-		f.cycle = 0
-		f.Pos.X++
+func (g *Goldfish) Tick(r *Renderer) {
+	if g.cycle == 10 {
+		g.cycle = 0
+		g.Pos.X++
 	} else {
-		f.cycle++
+		g.cycle++
 	}
 }
 

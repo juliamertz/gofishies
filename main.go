@@ -13,6 +13,12 @@ import (
 // how many milliseconds per tick
 const cycles = 400
 
+func check(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
 func main() {
 	cooked, err := term.MakeRaw(int(os.Stdin.Fd()))
 	check(err)
@@ -20,16 +26,18 @@ func main() {
 
 	width, height, err := term.GetSize(int(os.Stdin.Fd()))
 	check(err)
-	renderer := Renderer{entities: []Renderable{
-		&Goldfish{Pos: ansi.Pos{X: 0, Y: 0}},
-		// &Block{Pos: ansi.Pos{X: width - 20, Y: 0}},
-		&Whale{Pos: ansi.Pos{X: width, Y: 20}},
-    &Seaweed{Pos:ansi.Pos{X: 10, Y: height-6}, length: 3},
-	}}
+	renderer := Renderer{
+		entities: []Renderable{
+			&Goldfish{Pos: ansi.Pos{X: 0, Y: 0}},
+			// &Block{Pos: ansi.Pos{X: width - 20, Y: 0}},
+			&Whale{Pos: ansi.Pos{X: width, Y: 20}},
+			&Seaweed{Pos: ansi.Pos{X: 10, Y: height - 6}, length: 3},
+		}}
 
 	tickRate := 50
 
 	fmt.Println(ansi.Clear)
+	renderer.InitCells()
 	renderer.Draw()
 
 	i := 0
@@ -45,6 +53,7 @@ func main() {
 			switch b[0] {
 			// ctrl-c
 			case 3:
+				term.Restore(int(os.Stdin.Fd()), cooked)
 				os.Exit(0)
 				// space
 			case 32:
@@ -54,9 +63,9 @@ func main() {
 				tickRate += 5
 				// k
 			case 107:
-        if tickRate <= 5 {
-          continue
-        }
+				if tickRate <= 5 {
+					continue
+				}
 				tickRate -= 5
 			}
 			// fmt.Println("I got the byte", b, "("+string(b)+")")
@@ -68,6 +77,7 @@ func main() {
 			time.Sleep(time.Duration(tickRate) * time.Millisecond)
 			continue
 		}
+		renderer.InitCells()
 		renderer.Tick()
 		time.Sleep(time.Duration(tickRate) * time.Millisecond)
 		fmt.Println(ansi.Clear)

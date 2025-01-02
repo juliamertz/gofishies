@@ -14,7 +14,7 @@ func (f *Seaweed) DefaultColor() *int {
 	return ansi.ColorFromByte('c')
 }
 
-func (f *Seaweed) Render() (string, string) {
+func (f *Seaweed) Render(r *Renderer) (string, string) {
 	var art []string
 	var colors []string
 

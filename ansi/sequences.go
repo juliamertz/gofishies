@@ -1,9 +1,8 @@
 package ansi
 
 import (
-	"bytes"
 	"fmt"
-	"strings"
+	"io"
 )
 
 type Pos struct {
@@ -30,22 +29,28 @@ func PrintLines(pos Pos, lines []string) {
 	}
 }
 
-func color(code int) string {
+type AnsiColor interface {
+	code(c *AnsiColor) int
+}
+
+func Color(code int) string {
 	return Esc + fmt.Sprintf("[1;%dm", code)
 }
 
-var Black = color(30)
-var Red = color(31)
-var Green = color(32)
-var Yellow = color(33)
-var White = color(37)
-var Reset = color(0)
+type ForegroundColor int
+const (
+	Black  ForegroundColor = 30
+	Red    ForegroundColor = 31
+	Green  ForegroundColor = 32
+	Yellow ForegroundColor = 33
+	White  ForegroundColor = 37
+)
 
 func ColorFromByte(b byte) *int {
-  var result int;
+	var result int
 	switch b {
 	case 'r':
-    result = 31
+		result = 31
 	case 'g':
 		result = 32
 	case 'y':
@@ -61,40 +66,36 @@ func ColorFromByte(b byte) *int {
 	case 'd':
 		result = 39
 	}
-  return &result
+	return &result
 }
 
-func ColorizeArt(art string, colors string, base int) string {
-	var lastColor int
-	lines := strings.Split(art, "\n")
-	colorLines := strings.Split(colors, "\n")
-	buff := bytes.NewBufferString(color(base))
+type Cell struct {
+	Content byte
+	Fg     ForegroundColor 
+	Bg      int
+}
 
-	for y := 0; y < len(lines); y++ {
-		for x := 0; x < len(lines[y]); x++ {
-			var newColor int = base
+// Print cell at current cursor
+func (c *Cell) Print(w io.Writer) {
+  if c.Content == 0 {
+    w.Write([]byte{' '})
+    return
+  }
 
-			if x < len(colorLines[y]) {
-        code := ColorFromByte(colorLines[y][x])
-        if code == nil {
-          newColor = base
-        } else {
-          newColor = *code
-        }
-			}
-
-			if newColor != lastColor {
-				buff.WriteString(color(newColor))
-			}
-			lastColor = newColor
-			buff.WriteByte(lines[y][x])
-		}
-		buff.WriteByte('\n')
+	if c.Bg != 0 {
+    w.Write([]byte(Color(c.Bg)))
 	}
 
-	// buff.WriteString(Reset)
-	return buff.String()
+    w.Write([]byte(Color(int(c.Fg)) + string(c.Content)))
 }
+
+// func ColorizeArt(art string, colors string, base int) [][]Cell {
+//   lines := strings.Split(art, "\n")
+//   buff := make([][]Cell, )
+// 	for i := range r.cells {
+// 		buff[i] = make([]ansi.Cell, width, width)
+// 	}
+// }
 
 // func Black(str string) string {
 //   return color(30) + str + color(40)
