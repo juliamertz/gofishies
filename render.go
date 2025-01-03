@@ -90,7 +90,7 @@ func ColorFromRune(r rune) *tcell.Color {
 	return &color
 }
 
-type Renderable interface {
+type Entity interface {
 	Render(r *Renderer) (string, string)
 	Tick(*Renderer)
 	GetPos() Pos
@@ -112,13 +112,12 @@ type Renderer struct {
 	seaLevel    int
 	tickRate    int
 
-	entities  []Renderable
-	particles []Renderable
+	entities  []Entity
 
 	stdin []byte
 }
 
-func (r *Renderer) IsOffscreen(e Renderable) bool {
+func (r *Renderer) IsOffscreen(e Entity) bool {
 	pos := e.GetPos()
 	rendered, _ := e.Render(r)
 	split := strings.Split(rendered, "\n")
@@ -138,21 +137,11 @@ func (r *Renderer) IsOffscreen(e Renderable) bool {
 	return false
 }
 
-func tickRenderables(renderables *[]Renderable, renderer *Renderer) {
-	for i, item := range *renderables {
-		if item == nil {
-			continue
-		}
-		item.Tick(renderer)
-		if renderer.IsOffscreen(item) || item.ShouldDestroy() {
-			// *renderables = slices.Delete(*renderables, i, i+1)
-			*renderables = removeIdx(*renderables, i)
-		}
-	}
+func tickEntities(entities *[]Entity, renderer *Renderer) {
 }
 
-func removeIdx(slice []Renderable, idx int) []Renderable {
-	var output []Renderable
+func removeIdx(slice []Entity, idx int) []Entity {
+	var output []Entity
 	for i, element := range slice {
 		if i != idx {
 			output = append(output, element)
@@ -162,8 +151,16 @@ func removeIdx(slice []Renderable, idx int) []Renderable {
 }
 
 func (r *Renderer) Tick() {
-	tickRenderables(&r.entities, r)
-	tickRenderables(&r.particles, r)
+	for i, item := range r.entities {
+		if item == nil {
+			continue
+		}
+		item.Tick(r)
+		if r.IsOffscreen(item) || item.ShouldDestroy() {
+			// *renderables = slices.Delete(*renderables, i, i+1)
+			r.entities = removeIdx(r.entities, i)
+		}
+	}
 }
 
 func (r *Renderer) DrawText(content string, pos Pos) {
@@ -186,15 +183,6 @@ func (r *Renderer) Draw(screen tcell.Screen) error {
 
 	// render entities
 	for _, e := range r.entities {
-		if e == nil {
-			continue
-		}
-		art, colors := e.Render(r)
-		c := CanvasFromArt(art, colors, e.DefaultColor())
-		r.canvas.MergeAt(c, e.GetPos())
-	}
-	// render particles
-	for _, e := range r.particles {
 		if e == nil {
 			continue
 		}

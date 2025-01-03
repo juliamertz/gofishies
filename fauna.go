@@ -65,7 +65,7 @@ func (w *Whale) Tick(r *Renderer) {
 		w.tick = 0
 		w.Pos.X--
 		if RandOneIn(20) {
-			r.particles = append(r.particles, &Bubble{Pos: w.Pos})
+			r.entities = append(r.entities, &Bubble{Pos: w.Pos})
 		}
 	} else {
 		w.tick++

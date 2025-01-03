@@ -15,15 +15,15 @@ func check(err error) {
 	}
 }
 
-// func mkSea(width int, height int) []Renderable {
-// 	return []Renderable{
-// 		&Goldfish{Pos: Pos{X: 0, Y: 15}},
-// 		&Whale{Pos: Pos{X: width - 5, Y: 20}},
-// 		&Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
-// 		&Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 4},
-// 		&Waves{Pos: Pos{X: 0, Y: 5}},
-// 	}
-// }
+func mkSea(width int, height int) []Entity {
+	return []Entity{
+		&Goldfish{Pos: Pos{X: 0, Y: 15}},
+		&Whale{Pos: Pos{X: width - 5, Y: 20}},
+		&Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
+		&Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 4},
+		&Waves{Pos: Pos{X: 0, Y: 5}},
+	}
+}
 
 type Spawnable interface {
 	Spawn(r *Renderer)
@@ -44,27 +44,27 @@ func main() {
 	check(err)
 	err = screen.Init()
 	check(err)
-	// width, height := screen.Size()
+	width, height := screen.Size()
 
 	renderer := Renderer{
 		tickRate: 10,
 		seaLevel: 5,
 		paused:   false,
 		screen:   screen,
-		// entities: mkSea(width, height),
+		entities: mkSea(width, height),
 	}
 
 	defer renderer.screen.Fini()
 	go inputHandler(&renderer)
 
-	spawner := Spawner{
-		renderer: &renderer,
-		pool:     []Spawnable{&Goldfish{}, &Whale{}},
-	}
-
-	spawner.spawnRandom(&renderer)
-	spawner.spawnRandom(&renderer)
-	spawner.spawnRandom(&renderer)
+	// spawner := Spawner{
+	// 	renderer: &renderer,
+	// 	pool:     []Spawnable{&Goldfish{}, &Whale{}},
+	// }
+	//
+	// spawner.spawnRandom(&renderer)
+	// spawner.spawnRandom(&renderer)
+	// spawner.spawnRandom(&renderer)
 
 	for {
 		if renderer.paused {
