@@ -132,7 +132,7 @@ type Renderer struct {
 	screen tcell.Screen
 	canvas Canvas
 
-  debug bool
+	debug       bool
 	maxEntities uint32
 	paused      bool
 	seaLevel    int
@@ -142,6 +142,56 @@ type Renderer struct {
 
 	stdin []byte
 }
+
+// func (p *Pos) IsEdge(art string) bool {
+//     lines := strings.Split(art, "\n")
+//     numRows := len(lines)
+//
+//     if numRows == 0 || p.Y < 0 || p.Y >= numRows || p.X < 0 {
+//         return false
+//     }
+//
+//     numCols := len(lines[p.Y])
+//     if p.X >= numCols {
+//         return false
+//     }
+//
+//     hasTop, hasBottom, hasRight, hasLeft := false, false, false, false
+//
+//     // Check top
+//     for y := p.Y - 1; y >= 0; y-- {
+//         if p.X < len(lines[y]) && !isWhitespace(lines[y][p.X]) {
+//             hasTop = true
+//             break
+//         }
+//     }
+//
+//     // Check bottom
+//     for y := p.Y + 1; y < numRows; y++ {
+//         if p.X < len(lines[y]) && !isWhitespace(lines[y][p.X]) {
+//             hasBottom = true
+//             break
+//         }
+//     }
+//
+//     // Check left
+//     for x := p.X - 1; x >= 0; x-- {
+//         if !isWhitespace(lines[p.Y][x]) {
+//             hasLeft = true
+//             break
+//         }
+//     }
+//
+//     // Check right
+//     for x := p.X + 1; x < numCols; x++ {
+//         if !isWhitespace(lines[p.Y][x]) {
+//             hasRight = true
+//             break
+//         }
+//     }
+//
+//     return hasTop && hasBottom && hasRight && hasLeft
+// }
 
 func (r *Renderer) IsOffscreen(e Entity) bool {
 	pos := e.GetPos()
@@ -164,12 +214,12 @@ func (r *Renderer) IsOffscreen(e Entity) bool {
 }
 
 func (r *Renderer) RemoveEntity(e Entity) {
-  // panic(e)
-  for i, entry := range r.entities {
-    if entry == e {
-      r.entities = removeIdx(r.entities, i)
-    }
-  }
+	// panic(e)
+	for i, entry := range r.entities {
+		if entry == e {
+			r.entities = removeIdx(r.entities, i)
+		}
+	}
 }
 
 func removeIdx(slice []Entity, idx int) []Entity {
