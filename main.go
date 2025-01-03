@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"math/rand/v2"
 	"os"
 	"strings"
@@ -18,7 +20,8 @@ func check(err error) {
 func mkSea(width int, height int) []Entity {
 	return []Entity{
 		&Castle{Pos: Pos{X: width - 34, Y: height - 14}},
-		&Fish{variation: 0, direction: Left, Pos: Pos{X: width / 2, Y: 15}},
+		&Fish{variation: 0, direction: Right, Pos: Pos{X: width / 3, Y: 15}},
+		&Fish{variation: 1, direction: Right, Pos: Pos{X: 2, Y: 20}},
 		&Whale{direction: Left, Pos: Pos{X: width - 5, Y: 20}},
 		&Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
 		&Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 4},
@@ -48,7 +51,7 @@ func main() {
 	check(err)
 	width, height := screen.Size()
 
-	renderer := Renderer{
+	r := Renderer{
 		tickRate: 10,
 		seaLevel: 5,
 		paused:   false,
@@ -56,8 +59,8 @@ func main() {
 		entities: mkSea(width, height),
 	}
 
-	defer renderer.screen.Fini()
-	go eventHandler(&renderer)
+	defer r.screen.Fini()
+	go eventHandler(&r)
 
 	// spawner := Spawner{
 	// 	renderer: &renderer,
@@ -69,16 +72,44 @@ func main() {
 	// spawner.spawnRandom(&renderer)
 
 	for {
-		if renderer.paused {
-			time.Sleep(time.Duration(renderer.tickRate) * time.Millisecond)
+		if r.paused {
+			time.Sleep(time.Duration(r.tickRate) * time.Millisecond)
 			continue
 		}
-		renderer.Tick()
-		renderer.screen.Clear()
-		err := renderer.Draw()
-		check(err)
-		time.Sleep(time.Duration(renderer.tickRate) * time.Millisecond)
+
+		drawCurrent(&r)
+		r.Tick()
 	}
+}
+
+func drawCurrent(r *Renderer) {
+	// update all entities
+	r.screen.Clear()
+
+	// create empty canvas
+	width, height := r.screen.Size()
+	r.canvas = NewCanvas(width, height)
+
+	// draw all entities to canvas
+	err := r.Draw()
+	check(err)
+
+	if r.debug {
+		ser, err := json.Marshal(r.entities)
+		check(err)
+		lines := []string{
+			fmt.Sprintf("entities: %d", len(r.entities)),
+			fmt.Sprintf("entities: %s", string(ser)),
+			fmt.Sprintf("tickRate: %d", r.tickRate),
+		}
+		for y, line := range lines {
+			r.DrawText(line, Pos{Y: y})
+		}
+	}
+
+	// renderer.DrawText(fmt.Sprintf("shouldFill: %v", shouldFill), Pos{X: 10, Y: 5})
+	r.screen.Show()
+	time.Sleep(time.Duration(r.tickRate) * time.Millisecond)
 }
 
 func join(lines []string) string {
@@ -113,6 +144,10 @@ func eventHandler(r *Renderer) {
 				} else {
 					r.tickRate += 5
 				}
+			case 'x':
+				r.debug = !r.debug
+				drawCurrent(r)
+				r.screen.Show()
 			case 'k':
 				if r.tickRate <= 2 {
 					continue

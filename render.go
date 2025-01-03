@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -23,47 +22,19 @@ type Pos struct {
 	Y int
 }
 
-// check if position in canvas is whitespace at an edge
-// meaning it should be cut while rendering
-func (p *Pos) IsEdge(c *Canvas) bool {
-	if p.Y < len(c.cells) && p.X < len(c.cells[p.Y]) && c.cells[p.Y][p.X].Content != ' ' {
-    return false 
-	}
-
-	hasTop := false
-	hasBottom := false
-	hasRight := false
-	hasLeft := false
-
-	for y := p.Y - 1; y >= 0; y-- {
-		if c.cells[y][p.X].Content != ' ' {
-			hasTop = true
-			break
+func (c *Canvas) toString() string {
+	buff := ""
+	for _, line := range c.cells {
+		for _, cell := range line {
+			buff += string(cell.Content)
 		}
+		buff += "\n"
 	}
+	return buff
+}
 
-	for y := p.Y + 1; y < len(c.cells); y++ {
-		if c.cells[y][p.X].Content != ' ' {
-			hasBottom = true
-			break
-		}
-	}
-
-	for x := p.X - 1; x >= 0; x-- {
-		if c.cells[p.Y][x].Content != ' ' {
-			hasLeft = true
-			break
-		}
-	}
-
-	for x := p.X + 1; x < len(c.cells[p.Y]); x++ {
-		if c.cells[p.Y][x].Content != ' ' {
-			hasRight = true
-			break
-		}
-	}
-
-	return hasTop && hasBottom && hasRight && hasLeft
+func isWhitespace(ch byte) bool {
+	return ch == ' ' || byte(ch) == 0
 }
 
 func NewCanvas(width int, height int) Canvas {
@@ -90,12 +61,9 @@ func (c *Canvas) MergeAt(art Canvas, pos Pos) {
 				continue
 			}
 			// if content is set to 0 we can assume this cell wasn't initialized so we can ignore it
-			// p := Pos{Y: y + i, X: x + j}
-			if cell.Content == 0  {
+			if cell.Content == 0 {
 				continue
 			}
-			// check if cell is surrounded by characthers
-			// if so we fill it with the default bg color, otherwise its ignored
 
 			c.cells[y+i][x+j] = cell
 		}
@@ -164,6 +132,7 @@ type Renderer struct {
 	screen tcell.Screen
 	canvas Canvas
 
+  debug bool
 	maxEntities uint32
 	paused      bool
 	seaLevel    int
@@ -180,7 +149,7 @@ func (r *Renderer) IsOffscreen(e Entity) bool {
 	split := strings.Split(rendered, "\n")
 
 	height := len(split)
-  width := findArtWidth(rendered)
+	width := findArtWidth(rendered)
 	cols, lines := r.screen.Size()
 
 	if pos.X >= cols || pos.X+width <= 0 {
@@ -192,6 +161,15 @@ func (r *Renderer) IsOffscreen(e Entity) bool {
 	}
 
 	return false
+}
+
+func (r *Renderer) RemoveEntity(e Entity) {
+  // panic(e)
+  for i, entry := range r.entities {
+    if entry == e {
+      r.entities = removeIdx(r.entities, i)
+    }
+  }
 }
 
 func removeIdx(slice []Entity, idx int) []Entity {
@@ -227,9 +205,6 @@ func (r *Renderer) DrawText(content string, pos Pos) {
 }
 
 func (r *Renderer) Draw() error {
-	width, height := r.screen.Size()
-	r.canvas = NewCanvas(width, height)
-
 	if r == nil {
 		return fmt.Errorf("Draw was called but the renderer has no screen set")
 	}
@@ -247,20 +222,13 @@ func (r *Renderer) Draw() error {
 	// print each cell of final canvas
 	for y, line := range r.canvas.cells {
 		for x, cell := range line {
+			if isWhitespace(cell.Content) {
+				continue
+			}
 			style := tcell.StyleDefault.Foreground(cell.Fg)
 			r.screen.SetContent(x, y, rune(cell.Content), nil, style)
 		}
 	}
 
-	r.DrawText(fmt.Sprintf("entities: %d", len(r.entities)), Pos{})
-	ser, err := json.Marshal(r.entities)
-	check(err)
-	r.DrawText(fmt.Sprintf("entities: %s", string(ser)), Pos{Y: 1})
-	r.DrawText(fmt.Sprintf("tickRate: %d", r.tickRate), Pos{Y: 2})
-	if len(r.stdin) != 0 {
-		r.DrawText(fmt.Sprintf("lastKey: %d ", r.stdin[len(r.stdin)-1]), Pos{Y: 3})
-	}
-
-	r.screen.Show()
 	return nil
 }

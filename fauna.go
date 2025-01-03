@@ -27,25 +27,25 @@ func (w *Whale) DefaultColor() tcell.Color {
 }
 
 func (w *Whale) Render(r *Renderer) (string, string) {
-	art :=
-		`                                    
-       ______/~/~/~/__           /((
-     // __            ====__    /_((
-    //  @))       ))))      ===/__((
-    ))           )))))))        __((
-    \\     \)     ))))    __===\ _((
-     \\_______________====      \_((
-                                 \((`
+	art := join([]string{
+		"   ______/~/~/~/__           /((",
+		" // __            ====__    /_((",
+		"//  @))       ))))      ===/__((",
+		"))           )))))))        __((",
+		"\\\\     \\)     ))))    __===\\ _((",
+		" \\\\_______________====      \\_((",
+		"                             \\((",
+	})
 
-	colors :=
-		`                                    
-       ______/~/~/~/__           /((
-     // __            ====__    /_(w
-    //  wgg       ))))      ===/__(w
-    ))           )))))))        __(w
-    ww     ww     wwww    __===\ _(w
-     wwwwwwwwwwwwwwwwwwwww      \_(w
-                                 \((`
+	colors := join([]string{
+		"   ______/~/~/~/__           /((",
+		" // __            ====__    /_(w",
+		"//  wgg       ))))      ===/__(w",
+		"))           )))))))        __(w",
+		"ww     ww     wwww    __===\\ _(w",
+		" wwwwwwwwwwwwwwwwwwwww      \\_(w",
+		"                             \\(( ",
+	})
 
 	if w.direction == Right {
 		art = flipAsciiArt(art)
@@ -166,3 +166,39 @@ func (f *Fish) Tick(r *Renderer) {
 		f.cycle++
 	}
 }
+
+// // TESTING: blok,
+//
+// type Block struct {
+// 	Pos       Pos
+// }
+//
+// func (f *Block) DefaultColor() tcell.Color {
+// 	return tcell.ColorOrange
+// }
+//
+// func (f *Block) Spawn(r *Renderer) {
+// 	_, lines := r.screen.Size()
+// 	height := rand.IntN(lines - r.seaLevel)
+// 	f.Pos = Pos{Y: r.seaLevel + height}
+// 	r.entities = append(r.entities, f)
+// }
+//
+// func (f *Block) Render(r *Renderer) (string, string) {
+//   art := ` xox
+//  o o
+//  xox`
+//   colors := ` rwr
+//  w w
+//  rwr`
+//
+// 	return art, colors
+// }
+//
+// func (f *Block) GetPos() Pos {
+// 	return f.Pos
+// }
+//
+// func (f *Block) Tick(r *Renderer) {
+// }
+//

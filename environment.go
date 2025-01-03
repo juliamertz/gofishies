@@ -85,6 +85,9 @@ func (f *Bubble) GetPos() Pos {
 }
 
 func (f *Bubble) Tick(r *Renderer) {
+	if f.Pos.Y < r.seaLevel+3 {
+		r.RemoveEntity(f)
+	}
 	if f.ticks%20 == 0 {
 		f.Pos.Y--
 	}
