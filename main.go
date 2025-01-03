@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v2"
-	"golang.org/x/term"
 )
 
 // how many milliseconds per tick
@@ -19,17 +18,16 @@ func check(err error) {
 }
 
 func main() {
-	// cooked, err := term.MakeRaw(int(os.Stdin.Fd()))
-	// check(err)
-	// defer term.Restore(int(os.Stdin.Fd()), cooked)
-
-  // TODO: remove off-canvas entities from pool
-
-	width, height, err := term.GetSize(int(os.Stdin.Fd()))
+	screen, err := tcell.NewScreen()
 	check(err)
+	defer screen.Fini()
+
+	width, height := screen.Size()
 	renderer := Renderer{
 		tickRate: 5,
-    paused: false,
+		paused:   false,
+		screen:   screen,
+    // canvas: NewCanvas(width, height),
 		entities: []Renderable{
 			&Goldfish{Pos: Pos{X: 0, Y: 15}},
 			&Whale{Pos: Pos{X: width, Y: 20}},
@@ -38,38 +36,21 @@ func main() {
 			&Waves{Pos: Pos{X: 0, Y: 5}},
 		}}
 
-
-	screen, err := tcell.NewScreen()
-  renderer.screen = screen
-	check(err)
-	if err = screen.Init(); err != nil {
-		panic(err)
-	}
-	defer screen.Fini()
-
-	renderer.InitCells()
-
-
+  // seperate thread to handle ctrl-c and some other controls
 	go inputHandler(&renderer)
 
-  renderer.screen.Clear()
-	renderer.Draw(screen)
-
-	i := 0
-
-	for i < cycles {
+  // main render loop
+	for {
 		if renderer.paused {
 			time.Sleep(time.Duration(renderer.tickRate) * time.Millisecond)
 			continue
 		}
-		renderer.InitCells()
+
 		renderer.Tick()
 		time.Sleep(time.Duration(renderer.tickRate) * time.Millisecond)
-    renderer.screen.Clear()
+		renderer.screen.Clear()
 		renderer.Draw(screen)
 	}
-
-	time.Sleep(5 * time.Second)
 }
 
 func join(lines []string) string {
@@ -86,7 +67,7 @@ func inputHandler(r *Renderer) {
 		switch b[0] {
 		// ctrl-c
 		case 3:
-      r.screen.Fini()
+			r.screen.Fini()
 			os.Exit(0)
 			// space
 		case 32:

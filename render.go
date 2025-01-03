@@ -1,11 +1,9 @@
 package main
 
 import (
-	"os"
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
-	"golang.org/x/term"
 )
 
 type Cell struct {
@@ -106,21 +104,12 @@ type Renderer struct {
 	screen tcell.Screen
 	canvas Canvas
 
-  maxEntities uint32
-	paused   bool
-	tickRate int
+	maxEntities uint32
+	paused      bool
+	tickRate    int
 
 	entities  []Renderable
 	particles []Renderable
-}
-
-// Creates new 2 dimensional cell slice and discards the previous one
-func (r *Renderer) InitCells() {
-	width, height, err := term.GetSize(int(os.Stdin.Fd()))
-	if err != nil {
-		panic("unable to get terminal size")
-	}
-	r.canvas = NewCanvas(width, height)
 }
 
 func (r *Renderer) Tick() {
@@ -133,7 +122,10 @@ func (r *Renderer) Tick() {
 }
 
 func (r *Renderer) Draw(screen tcell.Screen) {
-  // render entities
+	width, height := r.screen.Size()
+	r.canvas = NewCanvas(width, height)
+
+	// render entities
 	for _, e := range r.entities {
 		if r == nil {
 			panic("draw was called but r is nil")
@@ -142,7 +134,7 @@ func (r *Renderer) Draw(screen tcell.Screen) {
 		c := CanvasFromArt(art, colors, e.DefaultColor())
 		r.canvas.MergeAt(c, e.GetPos())
 	}
-  // render particles
+	// render particles
 	for _, e := range r.particles {
 		if r == nil {
 			panic("draw was called but r is nil")
@@ -153,12 +145,10 @@ func (r *Renderer) Draw(screen tcell.Screen) {
 	}
 
 	// print each cell of final canvas
-	// ansi.Print(ansi.MoveHome)
 	for y, line := range r.canvas.cells {
 		for x, cell := range line {
 			style := tcell.StyleDefault.Foreground(cell.Fg)
 			screen.SetContent(x, y, rune(cell.Content), nil, style)
-			// screen.SetContent(x, y, rune(cell.Content), nil, style)
 		}
 	}
 

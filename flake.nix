@@ -1,0 +1,39 @@
+{
+  description = "Flake utils demo";
+
+  inputs.flake-utils.url = "github:numtide/flake-utils";
+
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+      in
+      {
+        packages.default = with pkgs; buildGoModule {
+          pname = "gofishies";
+          version = "0.0.1";
+
+          src = ./.;
+          vendorHash = "";
+
+          meta = with lib; {
+            description = "";
+            homepage = "";
+            license = licenses.mit;
+          };
+        };
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [
+            go
+            gopls
+          ];
+        };
+      }
+    );
+}
