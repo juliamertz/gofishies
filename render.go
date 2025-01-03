@@ -41,6 +41,9 @@ func (c *Canvas) MergeAt(art Canvas, pos Pos) {
 			if len(c.cells[i]) <= x+j || x+j < 0 {
 				continue
 			}
+      if cell.Content == 0 || cell.Content == ' ' {
+        continue
+      }
 			c.cells[y+i][x+j] = cell
 		}
 	}

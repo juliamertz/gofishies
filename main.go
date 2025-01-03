@@ -17,7 +17,7 @@ func check(err error) {
 
 func mkSea(width int, height int) []Entity {
 	return []Entity{
-    &Castle{Pos: Pos{X: width - 34, Y: height - 14},},
+		&Castle{Pos: Pos{X: width - 34, Y: height - 14}},
 		&Goldfish{Pos: Pos{X: 0, Y: 15}},
 		&Whale{Pos: Pos{X: width - 5, Y: 20}},
 		&Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
@@ -36,8 +36,8 @@ type Spawner struct {
 }
 
 func (s *Spawner) spawnRandom(r *Renderer) {
-  i := rand.IntN(len(s.pool)-1)
-  s.pool[i].Spawn(r)
+	i := rand.IntN(len(s.pool) - 1)
+	s.pool[i].Spawn(r)
 }
 
 func main() {
@@ -56,7 +56,7 @@ func main() {
 	}
 
 	defer renderer.screen.Fini()
-	go inputHandler(&renderer)
+	go eventHandler(&renderer)
 
 	// spawner := Spawner{
 	// 	renderer: &renderer,
@@ -84,41 +84,43 @@ func join(lines []string) string {
 	return strings.Join(lines, "\n")
 }
 
-func inputHandler(r *Renderer) {
-	var b []byte = make([]byte, 1)
+func eventHandler(r *Renderer) {
 	for {
-		os.Stdin.Read(b)
-		if len(b) < 1 {
-			continue
-		}
-		r.stdin = append(r.stdin, b[0])
-		switch b[0] {
-		// ctrl-c
-		case 3:
-			r.screen.Fini()
-			os.Exit(0)
-			// r
-		// case 114:
-		// 	r.entities = mkSea(r.screen.Size())
-			// space
-		case 32:
-			r.paused = !r.paused
-			// j
-		case 106:
-			if r.tickRate < 10 {
-				r.tickRate += 1
-			} else {
-				r.tickRate += 5
+		ev := r.screen.PollEvent()
+
+		// Process event
+		switch ev := ev.(type) {
+		case *tcell.EventResize:
+			r.screen.Sync()
+		case *tcell.EventKey:
+			switch ev.Key() {
+			case tcell.KeyEscape | tcell.KeyCtrlC:
+				r.screen.Fini()
+				os.Exit(0)
 			}
-			// k
-		case 107:
-			if r.tickRate <= 2 {
-				continue
-			}
-			if r.tickRate < 10 {
-				r.tickRate -= 1
-			} else {
-				r.tickRate -= 5
+			switch ev.Rune() {
+			// case 114:
+			// 	r.entities = mkSea(r.screen.Size())
+			case 'q':
+				r.screen.Fini()
+				os.Exit(0)
+			case ' ':
+				r.paused = !r.paused
+			case 'j':
+				if r.tickRate < 10 {
+					r.tickRate += 1
+				} else {
+					r.tickRate += 5
+				}
+			case 'k':
+				if r.tickRate <= 2 {
+					continue
+				}
+				if r.tickRate < 10 {
+					r.tickRate -= 1
+				} else {
+					r.tickRate -= 5
+				}
 			}
 		}
 	}
