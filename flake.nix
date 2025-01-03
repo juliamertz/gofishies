@@ -20,7 +20,7 @@
           version = "0.0.1";
 
           src = ./.;
-          vendorHash = "";
+          vendorHash = "sha256-8UprJXRLFO3giWAm8k+vbNz7HPYwKW7cD36qc3hEkzE=";
 
           meta = with lib; {
             description = "";
