@@ -8,9 +8,6 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-// how many milliseconds per tick
-const cycles = 400
-
 func check(err error) {
 	if err != nil {
 		panic(err)
@@ -20,14 +17,14 @@ func check(err error) {
 func main() {
 	screen, err := tcell.NewScreen()
 	check(err)
-	defer screen.Fini()
-
+  err = screen.Init()
+  check(err)
 	width, height := screen.Size()
+
 	renderer := Renderer{
 		tickRate: 5,
 		paused:   false,
-		screen:   screen,
-    // canvas: NewCanvas(width, height),
+    screen: screen,
 		entities: []Renderable{
 			&Goldfish{Pos: Pos{X: 0, Y: 15}},
 			&Whale{Pos: Pos{X: width, Y: 20}},
@@ -36,20 +33,19 @@ func main() {
 			&Waves{Pos: Pos{X: 0, Y: 5}},
 		}}
 
-  // seperate thread to handle ctrl-c and some other controls
+	defer renderer.screen.Fini()
 	go inputHandler(&renderer)
 
-  // main render loop
-	for {
+	for  {
 		if renderer.paused {
 			time.Sleep(time.Duration(renderer.tickRate) * time.Millisecond)
 			continue
 		}
-
 		renderer.Tick()
-		time.Sleep(time.Duration(renderer.tickRate) * time.Millisecond)
 		renderer.screen.Clear()
-		renderer.Draw(screen)
+    err := renderer.Draw(screen)
+    check(err)
+		time.Sleep(time.Duration(renderer.tickRate) * time.Millisecond)
 	}
 }
 
@@ -82,7 +78,5 @@ func inputHandler(r *Renderer) {
 			}
 			r.tickRate -= 5
 		}
-		// fmt.Println("I got the byte", b, "("+string(b)+")")
 	}
-
 }

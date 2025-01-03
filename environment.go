@@ -55,3 +55,31 @@ func (f *Waves) Tick(r *Renderer) {
 		f.ticks++
 	}
 }
+
+// Bubble
+
+type Bubble struct {
+	Pos   Pos
+	cycle int
+}
+
+func (f *Bubble) DefaultColor() tcell.Color {
+	return tcell.ColorWhite
+}
+
+func (f *Bubble) Render(r *Renderer) (string, string) {
+	return "o", "w"
+}
+
+func (f *Bubble) GetPos() Pos {
+	return f.Pos
+}
+
+func (f *Bubble) Tick(r *Renderer) {
+	if f.cycle == 20 {
+		f.cycle = 0
+		f.Pos.Y--
+	} else {
+		f.cycle++
+	}
+}

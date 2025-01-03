@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
@@ -121,24 +122,22 @@ func (r *Renderer) Tick() {
 	}
 }
 
-func (r *Renderer) Draw(screen tcell.Screen) {
+func (r *Renderer) Draw(screen tcell.Screen) error {
 	width, height := r.screen.Size()
 	r.canvas = NewCanvas(width, height)
 
+	if r == nil {
+		return fmt.Errorf("Draw was called but the renderer has no screen set")
+	}
+
 	// render entities
 	for _, e := range r.entities {
-		if r == nil {
-			panic("draw was called but r is nil")
-		}
 		art, colors := e.Render(r)
 		c := CanvasFromArt(art, colors, e.DefaultColor())
 		r.canvas.MergeAt(c, e.GetPos())
 	}
 	// render particles
 	for _, e := range r.particles {
-		if r == nil {
-			panic("draw was called but r is nil")
-		}
 		art, colors := e.Render(r)
 		c := CanvasFromArt(art, colors, e.DefaultColor())
 		r.canvas.MergeAt(c, e.GetPos())
@@ -152,8 +151,8 @@ func (r *Renderer) Draw(screen tcell.Screen) {
 		}
 	}
 
-	// screen.Show()
-	screen.Sync()
+	screen.Show()
+  return nil
 }
 
 // Check if art and color map are of the exact same lengths and are normalized
