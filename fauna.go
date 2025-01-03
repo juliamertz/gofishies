@@ -18,10 +18,6 @@ func (w *Whale) DefaultColor() tcell.Color {
 	return tcell.ColorGreen
 }
 
-func (w *Whale) ShouldDestroy() bool {
-	return false
-}
-
 func (w *Whale) Render(r *Renderer) (string, string) {
 	art :=
 		`                                    
@@ -81,10 +77,6 @@ type Goldfish struct {
 
 func (g *Goldfish) DefaultColor() tcell.Color {
 	return tcell.ColorOrange
-}
-
-func (g *Goldfish) ShouldDestroy() bool {
-	return false
 }
 
 func (g *Goldfish) Spawn(r *Renderer) {

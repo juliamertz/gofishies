@@ -16,10 +16,6 @@ func (f *Waves) DefaultColor() tcell.Color {
 	return tcell.ColorGreen
 }
 
-func (w *Waves) ShouldDestroy() bool {
-  return false
-}
-
 func (f *Waves) Render(r *Renderer) (string, string) {
 	width, _ := r.screen.Size()
 
@@ -71,10 +67,6 @@ func (f *Bubble) DefaultColor() tcell.Color {
 	return tcell.ColorWhite
 }
 
-func (b *Bubble) ShouldDestroy() bool {
-  return false
-}
-
 func (f *Bubble) Render(r *Renderer) (string, string) {
 	return "o", "w"
 }
@@ -90,4 +82,57 @@ func (f *Bubble) Tick(r *Renderer) {
 	} else {
 		f.cycle++
 	}
+}
+
+// Castle
+
+type Castle struct {
+	Pos Pos
+}
+
+func (f *Castle) DefaultColor() tcell.Color {
+	return tcell.ColorWhite
+}
+
+func (f *Castle) Render(r *Renderer) (string, string) {
+	art := `
+               T~~
+               |
+              /^\
+             /   \
+ _   _   _  /     \  _   _   _
+[ ]_[ ]_[ ]/ _   _ \[ ]_[ ]_[ ]
+|_=__-_ =_|_[ ]_[ ]_|_=-___-__|
+ | _- =  | =_ = _    |= _=   |
+ |= -[]  |- = _ =    |_-=_[] |
+ | =_    |= - ___    | =_ =  |
+ |=  []- |-  /| |\   |=_ =[] |
+ |- =_   | =| | | |  |- = -  |
+ |_______|__|_|_|_|__|_______|
+  `
+
+	colors := `
+                  
+
+              yyy
+             y   y
+            y     y
+           y       y
+
+
+
+              yyy
+             yy yy
+            y y y y
+            yyyyyyy
+  `
+
+	return art, colors
+}
+
+func (f *Castle) GetPos() Pos {
+	return f.Pos
+}
+
+func (f *Castle) Tick(r *Renderer) {
 }

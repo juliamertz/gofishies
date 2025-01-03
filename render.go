@@ -46,14 +46,33 @@ func (c *Canvas) MergeAt(art Canvas, pos Pos) {
 	}
 }
 
+func findArtWidth(art string) int {
+  lines := strings.Split(art,"\n")
+	width := 0
+	for _, line := range lines {
+		if len(line) > width {
+			width = len(line)
+		}
+	}
+	return width
+}
+
 func CanvasFromArt(art string, colors string, defaultColor tcell.Color) Canvas {
 	lines := strings.Split(art, "\n")
 	colorLines := strings.Split(colors, "\n")
-	buff := NewCanvas(len(lines[0]), len(lines))
+	buff := NewCanvas(findArtWidth(art), len(lines))
 
 	for y, line := range lines {
 		for x, ch := range line {
-			color := ColorFromRune(rune(colorLines[y][x]))
+
+			var color *tcell.Color
+
+			if len(colorLines) == 0 || len(colorLines[y]) == 0 || y > len(colorLines)-1 || x > len(colorLines[y])-1 {
+				color = &defaultColor
+			} else {
+				color = ColorFromRune(rune(colorLines[y][x]))
+			}
+
 			if *color == tcell.ColorDefault {
 				color = &defaultColor
 			}
@@ -94,7 +113,6 @@ type Entity interface {
 	Render(r *Renderer) (string, string)
 	Tick(*Renderer)
 	GetPos() Pos
-	ShouldDestroy() bool
 	DefaultColor() tcell.Color
 }
 
@@ -112,7 +130,7 @@ type Renderer struct {
 	seaLevel    int
 	tickRate    int
 
-	entities  []Entity
+	entities []Entity
 
 	stdin []byte
 }
@@ -156,8 +174,7 @@ func (r *Renderer) Tick() {
 			continue
 		}
 		item.Tick(r)
-		if r.IsOffscreen(item) || item.ShouldDestroy() {
-			// *renderables = slices.Delete(*renderables, i, i+1)
+		if r.IsOffscreen(item) {
 			r.entities = removeIdx(r.entities, i)
 		}
 	}
@@ -200,9 +217,9 @@ func (r *Renderer) Draw(screen tcell.Screen) error {
 	}
 
 	r.DrawText(fmt.Sprintf("entities: %d", len(r.entities)), Pos{})
-  ser,err := json.Marshal(r.entities)
-  check(err)
-  r.DrawText(fmt.Sprintf("entities: %s",string(ser)), Pos{Y:1})
+	ser, err := json.Marshal(r.entities)
+	check(err)
+	r.DrawText(fmt.Sprintf("entities: %s", string(ser)), Pos{Y: 1})
 	r.DrawText(fmt.Sprintf("tickRate: %d", r.tickRate), Pos{Y: 2})
 	if len(r.stdin) != 0 {
 		r.DrawText(fmt.Sprintf("lastKey: %d ", r.stdin[len(r.stdin)-1]), Pos{Y: 3})

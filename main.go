@@ -17,6 +17,7 @@ func check(err error) {
 
 func mkSea(width int, height int) []Entity {
 	return []Entity{
+    &Castle{Pos: Pos{X: width - 34, Y: height - 14},},
 		&Goldfish{Pos: Pos{X: 0, Y: 15}},
 		&Whale{Pos: Pos{X: width - 5, Y: 20}},
 		&Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
