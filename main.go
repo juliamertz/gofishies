@@ -18,16 +18,17 @@ func check(err error) {
 func mkSea(width int, height int) []Entity {
 	return []Entity{
 		&Castle{Pos: Pos{X: width - 34, Y: height - 14}},
-    &Fish{variation: 0, direction: Left, Pos: Pos{X: width / 2, Y: 15}},
-		&Whale{Pos: Pos{X: width - 5, Y: 20}},
+		&Fish{variation: 0, direction: Left, Pos: Pos{X: width / 2, Y: 15}},
+		&Whale{direction: Left, Pos: Pos{X: width - 5, Y: 20}},
 		&Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
 		&Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 4},
 		&Waves{Pos: Pos{X: 0, Y: 5}},
+		&Boat{Pos: Pos{X: 10, Y: 0}},
 	}
 }
 
 type Spawnable interface {
-	Spawn(r *Renderer)
+	Spawn()
 }
 
 type Spawner struct {
@@ -37,18 +38,10 @@ type Spawner struct {
 
 func (s *Spawner) spawnRandom(r *Renderer) {
 	i := rand.IntN(len(s.pool) - 1)
-	s.pool[i].Spawn(r)
+	s.pool[i].Spawn()
 }
 
 func main() {
-  // f := Castle{}
-  // r:=  &Renderer{}
-  // s, _ := f.Render(r)
-  // flipped := flipAsciiArt(s)
-  // fmt.Println(s)
-  // fmt.Println(flipped)
-  //   os.Exit(0)
-
 	screen, err := tcell.NewScreen()
 	check(err)
 	err = screen.Init()
@@ -82,7 +75,7 @@ func main() {
 		}
 		renderer.Tick()
 		renderer.screen.Clear()
-		err := renderer.Draw(screen)
+		err := renderer.Draw()
 		check(err)
 		time.Sleep(time.Duration(renderer.tickRate) * time.Millisecond)
 	}

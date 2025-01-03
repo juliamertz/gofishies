@@ -16,9 +16,10 @@ const (
 // Whale
 
 type Whale struct {
-	Pos   Pos
-	cycle int
-	tick  int
+	Pos       Pos
+	cycle     int
+	tick      int
+	direction Direction
 }
 
 func (w *Whale) DefaultColor() tcell.Color {
@@ -46,6 +47,11 @@ func (w *Whale) Render(r *Renderer) (string, string) {
      wwwwwwwwwwwwwwwwwwwww      \_(w
                                  \((`
 
+	if w.direction == Right {
+		art = flipAsciiArt(art)
+		colors = reverseArt(colors)
+	}
+
 	return art, colors
 }
 
@@ -63,7 +69,12 @@ func (w *Whale) Spawn(r *Renderer) {
 func (w *Whale) Tick(r *Renderer) {
 	if w.tick == 10 {
 		w.tick = 0
-		w.Pos.X--
+		switch w.direction {
+		case Left:
+			w.Pos.X--
+		case Right:
+			w.Pos.X++
+		}
 		if RandOneIn(20) {
 			r.entities = append(r.entities, &Bubble{Pos: w.Pos})
 		}
@@ -127,45 +138,31 @@ y
 
 	}
 
-	// if f.cycle < 5 {
-	// 	art = []string{
-	// 		"  _ ",
-	// 		"><_>",
-	// 	}
-	// } else {
-	// 	art = []string{
-	// 		"  _ ",
-	// 		"~<_>",
-	// 	}
-	// }
-
-	// colors := []string{
-	// 	"  c ",
-	// 	"yycc",
-	// }
-
-  if f.direction == Right {
-    art = flipAsciiArt(art)
-    colors = reverseArt(colors)
-  }
+	if f.direction == Right {
+		art = flipAsciiArt(art)
+		colors = reverseArt(colors)
+	}
 
 	return art, colors
 }
 
-func (g *Fish) GetPos() Pos {
-	return g.Pos
+func (f *Fish) GetPos() Pos {
+	return f.Pos
 }
 
-func (g *Fish) Tick(r *Renderer) {
-	if g.cycle == 10 {
-		g.cycle = 0
-		switch g.direction {
+func (f *Fish) Tick(r *Renderer) {
+	if f.cycle == 10 {
+		if RandOneIn(20) {
+			r.entities = append(r.entities, &Bubble{Pos: f.Pos})
+		}
+		f.cycle = 0
+		switch f.direction {
 		case Left:
-			g.Pos.X--
+			f.Pos.X--
 		case Right:
-			g.Pos.X++
+			f.Pos.X++
 		}
 	} else {
-		g.cycle++
+		f.cycle++
 	}
 }

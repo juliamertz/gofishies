@@ -18,6 +18,54 @@ type Canvas struct {
 	cells [][]Cell
 }
 
+type Pos struct {
+	X int
+	Y int
+}
+
+// check if position in canvas is whitespace at an edge
+// meaning it should be cut while rendering
+func (p *Pos) IsEdge(c *Canvas) bool {
+	if p.Y < len(c.cells) && p.X < len(c.cells[p.Y]) && c.cells[p.Y][p.X].Content != ' ' {
+    return false 
+	}
+
+	hasTop := false
+	hasBottom := false
+	hasRight := false
+	hasLeft := false
+
+	for y := p.Y - 1; y >= 0; y-- {
+		if c.cells[y][p.X].Content != ' ' {
+			hasTop = true
+			break
+		}
+	}
+
+	for y := p.Y + 1; y < len(c.cells); y++ {
+		if c.cells[y][p.X].Content != ' ' {
+			hasBottom = true
+			break
+		}
+	}
+
+	for x := p.X - 1; x >= 0; x-- {
+		if c.cells[p.Y][x].Content != ' ' {
+			hasLeft = true
+			break
+		}
+	}
+
+	for x := p.X + 1; x < len(c.cells[p.Y]); x++ {
+		if c.cells[p.Y][x].Content != ' ' {
+			hasRight = true
+			break
+		}
+	}
+
+	return hasTop && hasBottom && hasRight && hasLeft
+}
+
 func NewCanvas(width int, height int) Canvas {
 	buff := make([][]Cell, height, height)
 	for i := range buff {
@@ -41,9 +89,14 @@ func (c *Canvas) MergeAt(art Canvas, pos Pos) {
 			if len(c.cells[i]) <= x+j || x+j < 0 {
 				continue
 			}
-      if cell.Content == 0  {
-        continue
-      }
+			// if content is set to 0 we can assume this cell wasn't initialized so we can ignore it
+			// p := Pos{Y: y + i, X: x + j}
+			if cell.Content == 0  {
+				continue
+			}
+			// check if cell is surrounded by characthers
+			// if so we fill it with the default bg color, otherwise its ignored
+
 			c.cells[y+i][x+j] = cell
 		}
 	}
@@ -58,7 +111,7 @@ func CanvasFromArt(art string, colors string, defaultColor tcell.Color) Canvas {
 		for x, ch := range line {
 			var color *tcell.Color
 
-			if  y > len(colorLines)-1 || x > len(colorLines[y])-1 {
+			if y > len(colorLines)-1 || x > len(colorLines[y])-1 {
 				color = &defaultColor
 			} else {
 				color = ColorFromRune(rune(colorLines[y][x]))
@@ -107,11 +160,6 @@ type Entity interface {
 	DefaultColor() tcell.Color
 }
 
-type Pos struct {
-	X int
-	Y int
-}
-
 type Renderer struct {
 	screen tcell.Screen
 	canvas Canvas
@@ -132,7 +180,7 @@ func (r *Renderer) IsOffscreen(e Entity) bool {
 	split := strings.Split(rendered, "\n")
 
 	height := len(split)
-	width := len(split[0])
+  width := findArtWidth(rendered)
 	cols, lines := r.screen.Size()
 
 	if pos.X >= cols || pos.X+width <= 0 {
@@ -144,9 +192,6 @@ func (r *Renderer) IsOffscreen(e Entity) bool {
 	}
 
 	return false
-}
-
-func tickEntities(entities *[]Entity, renderer *Renderer) {
 }
 
 func removeIdx(slice []Entity, idx int) []Entity {
@@ -181,7 +226,7 @@ func (r *Renderer) DrawText(content string, pos Pos) {
 	}
 }
 
-func (r *Renderer) Draw(screen tcell.Screen) error {
+func (r *Renderer) Draw() error {
 	width, height := r.screen.Size()
 	r.canvas = NewCanvas(width, height)
 
@@ -203,7 +248,7 @@ func (r *Renderer) Draw(screen tcell.Screen) error {
 	for y, line := range r.canvas.cells {
 		for x, cell := range line {
 			style := tcell.StyleDefault.Foreground(cell.Fg)
-			screen.SetContent(x, y, rune(cell.Content), nil, style)
+			r.screen.SetContent(x, y, rune(cell.Content), nil, style)
 		}
 	}
 
@@ -216,6 +261,6 @@ func (r *Renderer) Draw(screen tcell.Screen) error {
 		r.DrawText(fmt.Sprintf("lastKey: %d ", r.stdin[len(r.stdin)-1]), Pos{Y: 3})
 	}
 
-	screen.Show()
+	r.screen.Show()
 	return nil
 }

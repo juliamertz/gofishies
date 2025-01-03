@@ -60,7 +60,8 @@ func (f *Waves) Tick(r *Renderer) {
 
 type Bubble struct {
 	Pos   Pos
-	cycle int
+	ticks int
+	stage int
 }
 
 func (f *Bubble) DefaultColor() tcell.Color {
@@ -68,7 +69,15 @@ func (f *Bubble) DefaultColor() tcell.Color {
 }
 
 func (f *Bubble) Render(r *Renderer) (string, string) {
-	return "o", "w"
+	var art string
+	switch f.stage {
+	case 0:
+		art = "."
+	case 1:
+		art = "o"
+	}
+
+	return art, "w"
 }
 
 func (f *Bubble) GetPos() Pos {
@@ -76,12 +85,13 @@ func (f *Bubble) GetPos() Pos {
 }
 
 func (f *Bubble) Tick(r *Renderer) {
-	if f.cycle == 20 {
-		f.cycle = 0
+	if f.ticks%20 == 0 {
 		f.Pos.Y--
-	} else {
-		f.cycle++
 	}
+	if f.ticks > 200 {
+		f.stage = 1
+	}
+	f.ticks++
 }
 
 // Castle
@@ -135,4 +145,44 @@ func (f *Castle) GetPos() Pos {
 }
 
 func (f *Castle) Tick(r *Renderer) {
+}
+
+// Boat
+
+type Boat struct {
+	Pos   Pos
+	ticks int
+}
+
+func (f *Boat) DefaultColor() tcell.Color {
+	return tcell.ColorWhite
+}
+
+func (f *Boat) Render(r *Renderer) (string, string) {
+	art := `
+                __/___            
+          _____/______|           
+  _______/_____\_______\_____     
+  \              < < <       |`
+
+	colors := `
+                __/___            
+          _____/______|           
+  _______/_____\_______\_____     
+  \              < < <       |`
+
+	return art, colors
+}
+
+func (f *Boat) GetPos() Pos {
+	return f.Pos
+}
+
+func (f *Boat) Tick(r *Renderer) {
+	if f.ticks > 20 {
+		f.ticks = 0
+		f.Pos.X--
+	} else {
+		f.ticks++
+	}
 }
