@@ -112,7 +112,7 @@ func (f *Castle) Render(r *Renderer) (string, string) {
   `
 
 	colors := `
-                  
+                rr
 
               yyy
              y   y

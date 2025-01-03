@@ -6,6 +6,13 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
+type Direction = int
+
+const (
+	Left  Direction = 0
+	Right Direction = 1
+)
+
 // Whale
 
 type Whale struct {
@@ -32,14 +39,12 @@ func (w *Whale) Render(r *Renderer) (string, string) {
 	colors :=
 		`                                    
        ______/~/~/~/__           /((
-     // __            ====__    /_((
-    //  wgg       ))))      ===/__((
-    ))           )))))))        __((
-    ww     ww     wwww    __===\ _((
-     wwwwwwwwwwwwwwwwwwwww      \_((
+     // __            ====__    /_(w
+    //  wgg       ))))      ===/__(w
+    ))           )))))))        __(w
+    ww     ww     wwww    __===\ _(w
+     wwwwwwwwwwwwwwwwwwwww      \_(w
                                  \((`
-
-	compareArtStrings(art, colors)
 
 	return art, colors
 }
@@ -51,10 +56,9 @@ func (w *Whale) GetPos() Pos {
 func (w *Whale) Spawn(r *Renderer) {
 	_, lines := r.screen.Size()
 	height := rand.IntN(lines - r.seaLevel)
-	w.Pos = Pos{Y:  r.seaLevel + height}
+	w.Pos = Pos{Y: r.seaLevel + height}
 	r.entities = append(r.entities, w)
 }
-
 
 func (w *Whale) Tick(r *Renderer) {
 	if w.tick == 10 {
@@ -68,56 +72,99 @@ func (w *Whale) Tick(r *Renderer) {
 	}
 }
 
-// Goldfish
-
-type Goldfish struct {
-	Pos   Pos
-	cycle int
+type Fish struct {
+	Pos       Pos
+	cycle     int
+	variation int
+	direction Direction
 }
 
-func (g *Goldfish) DefaultColor() tcell.Color {
+func (f *Fish) DefaultColor() tcell.Color {
 	return tcell.ColorOrange
 }
 
-func (g *Goldfish) Spawn(r *Renderer) {
+func (f *Fish) Spawn(r *Renderer) {
 	_, lines := r.screen.Size()
 	height := rand.IntN(lines - r.seaLevel)
-	g.Pos = Pos{Y:  r.seaLevel + height}
-	r.entities = append(r.entities, g)
+	f.Pos = Pos{Y: r.seaLevel + height}
+	r.entities = append(r.entities, f)
 }
 
-func (g *Goldfish) Render(r *Renderer) (string, string) {
-	var art []string
-	if g.cycle < 5 {
-		art = []string{
-			"  _ ",
-			"><_>",
-		}
-	} else {
-		art = []string{
-			"  _ ",
-			"~<_>",
-		}
+func (f *Fish) Render(r *Renderer) (string, string) {
+	var art string
+	var colors string
+
+	switch f.variation {
+	case 0:
+		art = `
+ _ 
+<_><
+`
+		colors = `
+ y 
+y   
+`
+	case 1:
+		art = `
+      .:/
+   ,,///;,   ,;/
+ o:::::::;;///
+>::::::::;;\\\\\
+  ''\\\\\\\\\'' ';\
+`
+		colors = `
+      .r/
+   ,,///;,   ,;/
+ orrrrrrr;;///
+>rrrrrrrr;;\\\\\
+  ''\\\\\\\\\'' ';\
+`
+	case 2:
+		art = `
+`
+		colors = `
+`
+
 	}
 
-	colors := []string{
-		"  c ",
-		"yycc",
-	}
+	// if f.cycle < 5 {
+	// 	art = []string{
+	// 		"  _ ",
+	// 		"><_>",
+	// 	}
+	// } else {
+	// 	art = []string{
+	// 		"  _ ",
+	// 		"~<_>",
+	// 	}
+	// }
 
-	compareArtStrings(join(art), join(colors))
+	// colors := []string{
+	// 	"  c ",
+	// 	"yycc",
+	// }
 
-	return join(art), join(colors)
+  if f.direction == Right {
+    art = flipAsciiArt(art)
+    colors = reverseArt(colors)
+  }
+
+	return art, colors
 }
 
-func (g *Goldfish) GetPos() Pos {
+func (g *Fish) GetPos() Pos {
 	return g.Pos
 }
 
-func (g *Goldfish) Tick(r *Renderer) {
+func (g *Fish) Tick(r *Renderer) {
 	if g.cycle == 10 {
 		g.cycle = 0
-		g.Pos.X++
+		switch g.direction {
+		case Left:
+			g.Pos.X--
+		case Right:
+			g.Pos.X++
+		}
 	} else {
 		g.cycle++
 	}

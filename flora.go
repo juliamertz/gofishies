@@ -34,8 +34,6 @@ func (s *Seaweed) Render(r *Renderer) (string, string) {
 		colors = append(colors, "gg")
 	}
 
-	compareArtStrings(join(art), join(colors))
-
 	return join(art), join(colors)
 }
 

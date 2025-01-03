@@ -18,7 +18,7 @@ func check(err error) {
 func mkSea(width int, height int) []Entity {
 	return []Entity{
 		&Castle{Pos: Pos{X: width - 34, Y: height - 14}},
-		&Goldfish{Pos: Pos{X: 0, Y: 15}},
+    &Fish{variation: 0, direction: Left, Pos: Pos{X: width / 2, Y: 15}},
 		&Whale{Pos: Pos{X: width - 5, Y: 20}},
 		&Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
 		&Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 4},
@@ -41,6 +41,14 @@ func (s *Spawner) spawnRandom(r *Renderer) {
 }
 
 func main() {
+  // f := Castle{}
+  // r:=  &Renderer{}
+  // s, _ := f.Render(r)
+  // flipped := flipAsciiArt(s)
+  // fmt.Println(s)
+  // fmt.Println(flipped)
+  //   os.Exit(0)
+
 	screen, err := tcell.NewScreen()
 	check(err)
 	err = screen.Init()

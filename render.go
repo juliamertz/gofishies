@@ -11,7 +11,7 @@ import (
 type Cell struct {
 	Content byte
 	Fg      tcell.Color
-	Bg      int
+	Bg      tcell.Color
 }
 
 type Canvas struct {
@@ -41,23 +41,12 @@ func (c *Canvas) MergeAt(art Canvas, pos Pos) {
 			if len(c.cells[i]) <= x+j || x+j < 0 {
 				continue
 			}
-      if cell.Content == 0 || cell.Content == ' ' {
+      if cell.Content == 0  {
         continue
       }
 			c.cells[y+i][x+j] = cell
 		}
 	}
-}
-
-func findArtWidth(art string) int {
-  lines := strings.Split(art,"\n")
-	width := 0
-	for _, line := range lines {
-		if len(line) > width {
-			width = len(line)
-		}
-	}
-	return width
 }
 
 func CanvasFromArt(art string, colors string, defaultColor tcell.Color) Canvas {
@@ -67,10 +56,9 @@ func CanvasFromArt(art string, colors string, defaultColor tcell.Color) Canvas {
 
 	for y, line := range lines {
 		for x, ch := range line {
-
 			var color *tcell.Color
 
-			if len(colorLines) == 0 || len(colorLines[y]) == 0 || y > len(colorLines)-1 || x > len(colorLines[y])-1 {
+			if  y > len(colorLines)-1 || x > len(colorLines[y])-1 {
 				color = &defaultColor
 			} else {
 				color = ColorFromRune(rune(colorLines[y][x]))
@@ -230,17 +218,4 @@ func (r *Renderer) Draw(screen tcell.Screen) error {
 
 	screen.Show()
 	return nil
-}
-
-// Check if art and color map are of the exact same lengths and are normalized
-func compareArtStrings(art string, colors string) {
-	artLines := strings.Split(art, "\n")
-	colorLines := strings.Split(colors, "\n")
-	firstLineLength := len(artLines[0])
-
-	for i, line := range artLines {
-		if len(line) != firstLineLength || len(colorLines[i]) != firstLineLength {
-			panic("invalid art strings: " + art + colors)
-		}
-	}
 }
