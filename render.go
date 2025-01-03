@@ -13,9 +13,12 @@ type Cell struct {
 	Bg      tcell.Color
 }
 
+
 type Canvas struct {
 	cells [][]Cell
 }
+
+type Frames = []Canvas
 
 type Pos struct {
 	X int
