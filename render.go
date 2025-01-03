@@ -13,7 +13,6 @@ type Cell struct {
 	Bg      tcell.Color
 }
 
-
 type Canvas struct {
 	cells [][]Cell
 }
@@ -64,9 +63,9 @@ func (c *Canvas) MergeAt(art Canvas, pos Pos) {
 				continue
 			}
 			// if content is set to 0 we can assume this cell wasn't initialized so we can ignore it
-			if cell.Content == 0 {
-				continue
-			}
+				if cell.Content == 0 {
+					continue
+				}
 
 			c.cells[y+i][x+j] = cell
 		}
