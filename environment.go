@@ -16,6 +16,10 @@ func (f *Waves) DefaultColor() tcell.Color {
 	return tcell.ColorGreen
 }
 
+func (w *Waves) ShouldDestroy() bool {
+  return false
+}
+
 func (f *Waves) Render(r *Renderer) (string, string) {
 	width, _ := r.screen.Size()
 
@@ -65,6 +69,10 @@ type Bubble struct {
 
 func (f *Bubble) DefaultColor() tcell.Color {
 	return tcell.ColorWhite
+}
+
+func (b *Bubble) ShouldDestroy() bool {
+  return false
 }
 
 func (f *Bubble) Render(r *Renderer) (string, string) {

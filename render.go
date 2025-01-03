@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -93,6 +94,7 @@ type Renderable interface {
 	Render(r *Renderer) (string, string)
 	Tick(*Renderer)
 	GetPos() Pos
+	ShouldDestroy() bool
 	DefaultColor() tcell.Color
 }
 
@@ -107,18 +109,70 @@ type Renderer struct {
 
 	maxEntities uint32
 	paused      bool
+	seaLevel    int
 	tickRate    int
 
 	entities  []Renderable
 	particles []Renderable
+
+	stdin []byte
+}
+
+func (r *Renderer) IsOffscreen(e Renderable) bool {
+	pos := e.GetPos()
+	rendered, _ := e.Render(r)
+	split := strings.Split(rendered, "\n")
+
+	height := len(split)
+	width := len(split[0])
+	cols, lines := r.screen.Size()
+
+	if pos.X >= cols || pos.X+width <= 0 {
+		return true
+	}
+
+	if pos.Y > lines || pos.Y+height <= 0 {
+		return true
+	}
+
+	return false
+}
+
+func tickRenderables(renderables *[]Renderable, renderer *Renderer) {
+	for i, item := range *renderables {
+		if item == nil {
+			continue
+		}
+		item.Tick(renderer)
+		if renderer.IsOffscreen(item) || item.ShouldDestroy() {
+			// *renderables = slices.Delete(*renderables, i, i+1)
+			*renderables = removeIdx(*renderables, i)
+		}
+	}
+}
+
+func removeIdx(slice []Renderable, idx int) []Renderable {
+	var output []Renderable
+	for i, element := range slice {
+		if i != idx {
+			output = append(output, element)
+		}
+	}
+	return output
 }
 
 func (r *Renderer) Tick() {
-	for _, e := range r.entities {
-		e.Tick(r)
-	}
-	for _, e := range r.particles {
-		e.Tick(r)
+	tickRenderables(&r.entities, r)
+	tickRenderables(&r.particles, r)
+}
+
+func (r *Renderer) DrawText(content string, pos Pos) {
+	lines := strings.Split(content, "\n")
+	for i, line := range lines {
+		for j, ch := range line {
+			style := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
+			r.screen.SetContent(pos.X+j, pos.Y+i, ch, nil, style)
+		}
 	}
 }
 
@@ -132,12 +186,18 @@ func (r *Renderer) Draw(screen tcell.Screen) error {
 
 	// render entities
 	for _, e := range r.entities {
+		if e == nil {
+			continue
+		}
 		art, colors := e.Render(r)
 		c := CanvasFromArt(art, colors, e.DefaultColor())
 		r.canvas.MergeAt(c, e.GetPos())
 	}
 	// render particles
 	for _, e := range r.particles {
+		if e == nil {
+			continue
+		}
 		art, colors := e.Render(r)
 		c := CanvasFromArt(art, colors, e.DefaultColor())
 		r.canvas.MergeAt(c, e.GetPos())
@@ -151,8 +211,17 @@ func (r *Renderer) Draw(screen tcell.Screen) error {
 		}
 	}
 
+	r.DrawText(fmt.Sprintf("entities: %d", len(r.entities)), Pos{})
+  ser,err := json.Marshal(r.entities)
+  check(err)
+  r.DrawText(fmt.Sprintf("entities: %s",string(ser)), Pos{Y:1})
+	r.DrawText(fmt.Sprintf("tickRate: %d", r.tickRate), Pos{Y: 2})
+	if len(r.stdin) != 0 {
+		r.DrawText(fmt.Sprintf("lastKey: %d ", r.stdin[len(r.stdin)-1]), Pos{Y: 3})
+	}
+
 	screen.Show()
-  return nil
+	return nil
 }
 
 // Check if art and color map are of the exact same lengths and are normalized

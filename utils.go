@@ -8,6 +8,7 @@ import (
 func RandOneIn(n int) bool {
 	src := rand.NewPCG(uint64(n), uint64(time.Now().UnixNano()))
 	rng := rand.New(src)
-  j := rng.IntN(n)
-  return j == 1
+	j := rng.IntN(n)
+	return j == 1
 }
+

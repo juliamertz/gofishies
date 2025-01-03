@@ -13,7 +13,11 @@ type Seaweed struct {
 	stage  bool
 }
 
-func (f *Seaweed) DefaultColor() tcell.Color {
+func (s *Seaweed) ShouldDestroy() bool {
+  return false
+}
+
+func (s *Seaweed) DefaultColor() tcell.Color {
 	return tcell.ColorGreen
 }
 

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math/rand/v2"
+
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -9,14 +11,18 @@ import (
 type Whale struct {
 	Pos   Pos
 	cycle int
-  tick int
+	tick  int
 }
 
-func (f *Whale) DefaultColor() tcell.Color {
+func (w *Whale) DefaultColor() tcell.Color {
 	return tcell.ColorGreen
 }
 
-func (f *Whale) Render(r *Renderer) (string, string) {
+func (w *Whale) ShouldDestroy() bool {
+	return false
+}
+
+func (w *Whale) Render(r *Renderer) (string, string) {
 	art :=
 		`                                    
        ______/~/~/~/__           /((
@@ -42,19 +48,27 @@ func (f *Whale) Render(r *Renderer) (string, string) {
 	return art, colors
 }
 
-func (f *Whale) GetPos() Pos {
-	return f.Pos
+func (w *Whale) GetPos() Pos {
+	return w.Pos
 }
 
-func (f *Whale) Tick(r *Renderer) {
-	if f.tick == 10 {
-		f.tick = 0
-		f.Pos.X--
-    if RandOneIn(20) {
-      r.particles = append(r.particles, &Bubble{Pos: f.Pos})
-    }
+func (w *Whale) Spawn(r *Renderer) {
+	_, lines := r.screen.Size()
+	height := rand.IntN(lines - r.seaLevel)
+	w.Pos = Pos{Y:  r.seaLevel + height}
+	r.entities = append(r.entities, w)
+}
+
+
+func (w *Whale) Tick(r *Renderer) {
+	if w.tick == 10 {
+		w.tick = 0
+		w.Pos.X--
+		if RandOneIn(20) {
+			r.particles = append(r.particles, &Bubble{Pos: w.Pos})
+		}
 	} else {
-		f.tick++
+		w.tick++
 	}
 }
 
@@ -65,8 +79,19 @@ type Goldfish struct {
 	cycle int
 }
 
-func (f *Goldfish) DefaultColor() tcell.Color {
+func (g *Goldfish) DefaultColor() tcell.Color {
 	return tcell.ColorOrange
+}
+
+func (g *Goldfish) ShouldDestroy() bool {
+	return false
+}
+
+func (g *Goldfish) Spawn(r *Renderer) {
+	_, lines := r.screen.Size()
+	height := rand.IntN(lines - r.seaLevel)
+	g.Pos = Pos{Y:  r.seaLevel + height}
+	r.entities = append(r.entities, g)
 }
 
 func (g *Goldfish) Render(r *Renderer) (string, string) {
