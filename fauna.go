@@ -39,10 +39,10 @@ func (w *Whale) Render(r *Renderer) (string, string) {
 
 	colors := join([]string{
 		"   ______/~/~/~/__           /((",
-		" // __ ddddddddddd====__    /_(w",
-		"//  wggdddddd ))))      ===/__(w",
-		"))  ddddddddd)))))))        __(w",
-		"wwdddddwwdddddwwww    __===\\ _(w",
+		" //d__dddddddddddd====__    /_(w",
+		"//ddwggddddddd))))dddddd===/__(w",
+		"))ddddddddddd)))))))dddddddd__(w",
+		"wwdddddwwdddddwwwwssss__===\\ _(w",
 		" wwwwwwwwwwwwwwwwwwwww      \\_(w",
 		"                             \\(( ",
 	})

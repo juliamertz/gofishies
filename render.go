@@ -63,9 +63,9 @@ func (c *Canvas) MergeAt(art Canvas, pos Pos) {
 				continue
 			}
 			// if content is set to 0 we can assume this cell wasn't initialized so we can ignore it
-				if cell.Content == 0 {
-					continue
-				}
+			if cell.Content == 0 {
+				continue
+			}
 
 			c.cells[y+i][x+j] = cell
 		}
@@ -87,6 +87,13 @@ func CanvasFromArt(art string, colors string, defaultColor tcell.Color) Canvas {
 				color = ColorFromRune(rune(colorLines[y][x]))
 			}
 
+			if color == nil {
+				n := tcell.ColorNone
+				color = &n
+				if ch == ' ' {
+					ch = 0
+				}
+			}
 			if *color == tcell.ColorDefault {
 				color = &defaultColor
 			}
@@ -119,6 +126,8 @@ func ColorFromRune(r rune) *tcell.Color {
 		color = tcell.ColorWhite
 	case 'd':
 		color = tcell.ColorDefault
+	case ' ':
+		return nil
 	}
 	return &color
 }

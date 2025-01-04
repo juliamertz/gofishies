@@ -124,21 +124,36 @@ func (f *Castle) Render(r *Renderer) (string, string) {
  |_______|__|_|_|_|__|_______|
   `
 
-	colors := `
-                rr
+  colors := `
+                rr           
+                             
+              yyy            
+             ydddy           
+d ddd ddd ddydddddyd ddd ddd 
+ d   d   d yd ddd dyd   d   d
+       d     d   d           
+d d  d dd d  d d dddd  d  ddd
+d  d   dd  d d d dddd       d
+d d  dddd  d dyyydddd d  d dd
+d  dd   d  ddyydyydd   d   d 
+d  d  ddd d ydydydydd  d d dd
+d           yyyyyyy           `
 
-              yyy
-             y   y
-            y     y
-           y       y
-
-
-
-              yyy
-             yy yy
-            y y y y
-            yyyyyyy
-  `
+	// colors := `
+	//                rr
+	//
+	//              yyy
+	//             y   y
+	//            y     y
+	//           y       y
+	//
+	//
+	//
+	//              yyy
+	//             yy yy
+	//            y y y y
+	//            yyyyyyy
+	//  `
 
 	return art, colors
 }
