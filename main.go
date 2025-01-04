@@ -19,13 +19,14 @@ func check(err error) {
 func mkSea(width int, height int) []Entity {
 	return []Entity{
 		&Castle{Pos: Pos{X: width - 34, Y: height - 14}},
-		// &Fish{variation: 0, direction: Right, Pos: Pos{X: width / 3, Y: 15}},
-		// &Fish{variation: 1, direction: Right, Pos: Pos{X: 2, Y: 20}},
+		&Fish{variation: 0, direction: Right, Pos: Pos{X: width / 3, Y: 15}},
+		&Fish{variation: 1, direction: Right, Pos: Pos{X: 2, Y: 20}},
+		&Fish{variation: 2, direction: Right, Pos: Pos{X: 2, Y: 10}},
 		&Whale{direction: Left, Pos: Pos{X: width - 5, Y: 20}},
 		&Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
 		&Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 4},
 		&Waves{Pos: Pos{X: 0, Y: 5}},
-		&Boat{Pos: Pos{X: 10, Y: 0}},
+    &Boat{variation: 1,Pos: Pos{X: 10, Y: 0}},
 	}
 }
 
@@ -67,14 +68,13 @@ func main() {
 		renderer: &r,
 	   pool:     []Spawnable{&Fish{},&Whale{}},
 	}
+	// s.spawnRandom()
+	// s.spawnRandom()
+	// s.spawnRandom()
+	// s.spawnRandom()
 
 	defer r.screen.Fini()
 	go eventHandler(&r, &s)
-
-	s.spawnRandom()
-	s.spawnRandom()
-	s.spawnRandom()
-	s.spawnRandom()
 
 	for {
 		if r.paused {

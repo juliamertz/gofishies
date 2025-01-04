@@ -1,8 +1,6 @@
 {
-  description = "Flake utils demo";
-
+  description = "gofishies flake";
   inputs.flake-utils.url = "github:numtide/flake-utils";
-
   outputs =
     {
       self,
@@ -29,6 +27,8 @@
               homepage = "";
               license = licenses.mit;
             };
+
+            env.CGO_ENABLED = 0;
           };
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [

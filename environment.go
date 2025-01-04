@@ -124,7 +124,7 @@ func (f *Castle) Render(r *Renderer) (string, string) {
  |_______|__|_|_|_|__|_______|
   `
 
-  colors := `
+	colors := `
                 rr           
                              
               yyy            
@@ -168,26 +168,47 @@ func (f *Castle) Tick(r *Renderer) {
 // Boat
 
 type Boat struct {
-	Pos   Pos
-	ticks int
+	Pos       Pos
+	ticks     int
+	variation int
 }
 
 func (f *Boat) DefaultColor() tcell.Color {
-	return tcell.ColorWhite
+	return tcell.ColorGray
 }
 
-func (f *Boat) Render(r *Renderer) (string, string) {
-	art := `
-                __/___            
-          _____/______|           
-  _______/_____\_______\_____     
-  \              < < <       |`
+func (b *Boat) Render(r *Renderer) (string, string) {
+	var art string
+	var colors string
 
-	colors := `
-                __/___            
-          _____/______|           
-  _______/_____\_______\_____     
-  \              < < <       |`
+	switch b.variation {
+	case 0:
+		art = `
+              __/___            
+        _____/______|           
+_______/_____\_______\_____     
+\              < < <       |`
+		colors = `
+              wwwwww            
+        wwwwwwwwwwwww           
+_______w_____w_______w_____     
+\dddddddddddddd<d<d<ddddddd|`
+	case 1:
+		art = `
+   |    |    |                 
+   )_)  )_)  )_)              
+  )___))___))___)\            
+ )____)____)_____)\\
+_____|____|____|____\\\__
+\                   /`
+		colors = `
+   |    |    |                 
+   )_)  )_)  )_)              
+  )___))___))___)\            
+ )____)____)_____)\\
+_____|____|____|____\\\__
+\                   /`
+	}
 
 	return art, colors
 }

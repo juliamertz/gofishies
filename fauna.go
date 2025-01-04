@@ -96,9 +96,9 @@ func (f *Fish) DefaultColor() tcell.Color {
 func (f *Fish) Spawn(r *Renderer) {
 	_, lines := r.screen.Size()
 	height := rand.IntN(lines - r.seaLevel)
-	f.variation = rand.IntN(2)
-  f.direction = Right
-	f.Pos = Pos{Y: r.seaLevel + height }
+	f.variation = rand.IntN(3)
+	f.direction = Right
+	f.Pos = Pos{Y: r.seaLevel + height}
 	r.entities = append(r.entities, f)
 }
 
@@ -133,9 +133,20 @@ y
 `
 	case 2:
 		art = `
-`
+      /
+  ,../...
+ /       '\  /
+< '  )rwx  =<
+ \ \      /  \
+  ` + `'\'"'"'`
 		colors = `
-`
+      /
+  ,../...
+ /       '\  /
+< '  )rwx  =<
+ \ \      /  \
+  ` + `'\'"'"'`
+
 
 	}
 

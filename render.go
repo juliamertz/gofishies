@@ -149,9 +149,8 @@ type Renderer struct {
 	seaLevel    int
 	tickRate    int
 
+  // TODO: redo with map to avoid some weird quircks
 	entities []Entity
-
-	stdin []byte
 }
 
 func (r *Renderer) IsOffscreen(e Entity) bool {
