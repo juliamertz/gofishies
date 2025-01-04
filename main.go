@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand/v2"
 	"os"
 	"strings"
 	"time"
@@ -20,8 +19,8 @@ func check(err error) {
 func mkSea(width int, height int) []Entity {
 	return []Entity{
 		&Castle{Pos: Pos{X: width - 34, Y: height - 14}},
-		&Fish{variation: 0, direction: Right, Pos: Pos{X: width / 3, Y: 15}},
-		&Fish{variation: 1, direction: Right, Pos: Pos{X: 2, Y: 20}},
+		// &Fish{variation: 0, direction: Right, Pos: Pos{X: width / 3, Y: 15}},
+		// &Fish{variation: 1, direction: Right, Pos: Pos{X: 2, Y: 20}},
 		&Whale{direction: Left, Pos: Pos{X: width - 5, Y: 20}},
 		&Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
 		&Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 4},
@@ -31,7 +30,7 @@ func mkSea(width int, height int) []Entity {
 }
 
 type Spawnable interface {
-	Spawn()
+	Spawn(* Renderer)
 }
 
 type Spawner struct {
@@ -39,9 +38,14 @@ type Spawner struct {
 	pool     []Spawnable
 }
 
-func (s *Spawner) spawnRandom(r *Renderer) {
-	i := rand.IntN(len(s.pool) - 1)
-	s.pool[i].Spawn()
+func (s *Spawner) spawnRandom() {
+  // fmt.Println("lenpool: ", len(s.pool))
+	// i := rand.IntN(len(s.pool))
+  i := RNG.IntN(len(s.pool))
+  if i > len(s.pool) {
+    panic("why the fuck does this happpen")
+  }
+	s.pool[i].Spawn(s.renderer)
 }
 
 func main() {
@@ -59,17 +63,18 @@ func main() {
 		entities: mkSea(width, height),
 	}
 
-	defer r.screen.Fini()
-	go eventHandler(&r)
+	s := Spawner{
+		renderer: &r,
+	   pool:     []Spawnable{&Fish{},&Whale{}},
+	}
 
-	// spawner := Spawner{
-	// 	renderer: &renderer,
-	// 	pool:     []Spawnable{&Goldfish{}, &Whale{}},
-	// }
-	//
-	// spawner.spawnRandom(&renderer)
-	// spawner.spawnRandom(&renderer)
-	// spawner.spawnRandom(&renderer)
+	defer r.screen.Fini()
+	go eventHandler(&r, &s)
+
+	s.spawnRandom()
+	s.spawnRandom()
+	s.spawnRandom()
+	s.spawnRandom()
 
 	for {
 		if r.paused {
@@ -95,7 +100,7 @@ func drawCurrent(r *Renderer) {
 	check(err)
 
 	if r.debug {
-		ser, err := json.Marshal(r.entities)
+		ser, err := json.MarshalIndent(r.entities, "", "  ")
 		check(err)
 		lines := []string{
 			fmt.Sprintf("entities: %d", len(r.entities)),
@@ -105,10 +110,6 @@ func drawCurrent(r *Renderer) {
     for i, line := range lines {
       r.DrawText(line, Pos{Y: i})
     }
-
-		r.DrawText(fmt.Sprintf("entities: %d", len(r.entities)), Pos{})
-		r.DrawText(fmt.Sprintf("entities: %s", string(ser)), Pos{Y: 1})
-		r.DrawText(fmt.Sprintf("tickRate: %d", r.tickRate), Pos{Y: 2})
 	}
 
 	// renderer.DrawText(fmt.Sprintf("shouldFill: %v", shouldFill), Pos{X: 10, Y: 5})
@@ -120,7 +121,7 @@ func join(lines []string) string {
 	return strings.Join(lines, "\n")
 }
 
-func eventHandler(r *Renderer) {
+func eventHandler(r *Renderer, s *Spawner) {
 	for {
 		ev := r.screen.PollEvent()
 
@@ -135,8 +136,11 @@ func eventHandler(r *Renderer) {
 				os.Exit(0)
 			}
 			switch ev.Rune() {
-			// case 114:
-			// 	r.entities = mkSea(r.screen.Size())
+			case 'r':
+        // s.spawnRandom()
+        // s.spawnRandom()
+        // s.spawnRandom()
+        s.spawnRandom()
 			case 'q':
 				r.screen.Fini()
 				os.Exit(0)

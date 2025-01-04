@@ -6,6 +6,15 @@ import (
 	"time"
 )
 
+
+var RNG = rand.New(rand.NewPCG(uint64(0), uint64(time.Now().UnixNano())))
+
+func SeededRandIntN(n int, seed uint64) int {
+	src := rand.NewPCG(uint64(seed), uint64(seed))
+	rng := rand.New(src)
+	return rng.IntN(n)
+}
+
 func RandOneIn(n int) bool {
 	src := rand.NewPCG(uint64(n), uint64(time.Now().UnixNano()))
 	rng := rand.New(src)
