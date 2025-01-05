@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/gdamore/tcell/v2"
 	"math/rand/v2"
 	"strings"
+
+	"github.com/gdamore/tcell/v2"
 )
 
 type Waves struct {
@@ -86,8 +87,7 @@ func (f *Bubble) GetPos() Pos {
 
 func (b *Bubble) Tick(r *Renderer) {
 	if b.Pos.Y < r.seaLevel+3 {
-    // panic("bubble should die")
-		// r.RemoveEntity(f.id)
+    r.KillEntity(b)
 	}
 	if b.ticks%20 == 0 {
 		b.Pos.Y--
@@ -178,6 +178,7 @@ _______/_____\_______\_____
         wwwwwwwwwwwww           
 _______w_____w_______w_____     
 \dddddddddddddd<d<d<ddddddd|`
+
 	case 1:
 		art = `
    |    |    |                 

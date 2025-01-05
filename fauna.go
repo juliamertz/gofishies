@@ -35,6 +35,14 @@ func (w *Whale) Render(r *Renderer) (string, string) {
 		" \\\\_______________====      \\_((",
 		"                             \\((",
 	})
+	// art := `
+	//     ______/~/~/~/__           /((
+	//   // __            ====__    /_((
+	//  //  @))       ))))      ===/__((
+	//  ))           )))))))        __((
+	//  \\     \)     ))))    __===\ _((
+	//   \\_______________====      \_((
+	//                               \((`
 
 	colors := join([]string{
 		"   ______/~/~/~/__           /((",
@@ -62,7 +70,7 @@ func (w *Whale) Spawn(r *Renderer) {
 	_, lines := r.screen.Size()
 	height := rand.IntN(lines - r.seaLevel)
 	w.Pos = Pos{Y: r.seaLevel + height}
-  r.entities = append(r.entities, w)
+	r.entities = append(r.entities, w)
 }
 
 func (w *Whale) Tick(r *Renderer) {
@@ -75,9 +83,9 @@ func (w *Whale) Tick(r *Renderer) {
 			w.Pos.X++
 		}
 
-		// if RandOneIn(20) {
-		// 	r.entities[len(r.entities)] = &Bubble{Pos: w.Pos}
-		// }
+		if RandOneIn(20) {
+			r.entities = append(r.entities, &Bubble{Pos: w.Pos})
+		}
 	} else {
 		w.tick++
 	}
@@ -100,7 +108,7 @@ func (f *Fish) Spawn(r *Renderer) {
 	f.variation = rand.IntN(3)
 	f.direction = Right
 	f.Pos = Pos{Y: r.seaLevel + height}
-  r.entities = append(r.entities, f)
+	r.entities = append(r.entities, f)
 }
 
 func (f *Fish) Render(r *Renderer) (string, string) {

@@ -184,14 +184,23 @@ func FilterNil(input []Entity) []Entity {
 	return result
 }
 
+func (r *Renderer) KillEntity(v Entity) {
+	for i, e := range r.entities {
+		if e == v {
+			r.entities = FilterNil(slices.Delete(r.entities, i, i+1))
+			break
+		}
+	}
+}
+
 func (r *Renderer) Tick() {
-	for i, item := range r.entities {
+	for _, item := range r.entities {
 		if item == nil {
 			continue
 		}
 		item.Tick(r)
 		if r.IsOffscreen(item) {
-			r.entities = FilterNil(slices.Delete(r.entities, i, i+1))
+      r.KillEntity(item)
 		}
 	}
 }
