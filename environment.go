@@ -84,17 +84,18 @@ func (f *Bubble) GetPos() Pos {
 	return f.Pos
 }
 
-func (f *Bubble) Tick(r *Renderer) {
-	if f.Pos.Y < r.seaLevel+3 {
-		r.RemoveEntity(f)
+func (b *Bubble) Tick(r *Renderer) {
+	if b.Pos.Y < r.seaLevel+3 {
+    // panic("bubble should die")
+		// r.RemoveEntity(f.id)
 	}
-	if f.ticks%20 == 0 {
-		f.Pos.Y--
+	if b.ticks%20 == 0 {
+		b.Pos.Y--
 	}
-	if f.ticks > 200 {
-		f.stage = 1
+	if b.ticks > 200 {
+		b.stage = 1
 	}
-	f.ticks++
+	b.ticks++
 }
 
 // Castle

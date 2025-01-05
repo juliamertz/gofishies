@@ -139,6 +139,10 @@ type Entity interface {
 	DefaultColor() tcell.Color
 }
 
+func Kill(e *Entity) {
+	*e = nil
+}
+
 type Renderer struct {
 	screen tcell.Screen
 	canvas Canvas
@@ -149,8 +153,7 @@ type Renderer struct {
 	seaLevel    int
 	tickRate    int
 
-  // TODO: redo with map to avoid some weird quircks
-	entities []Entity
+	entities map[int]Entity
 }
 
 func (r *Renderer) IsOffscreen(e Entity) bool {
@@ -160,6 +163,7 @@ func (r *Renderer) IsOffscreen(e Entity) bool {
 
 	height := len(split)
 	width := findArtWidth(rendered)
+
 	cols, lines := r.screen.Size()
 
 	if pos.X >= cols || pos.X+width <= 0 {
@@ -173,33 +177,28 @@ func (r *Renderer) IsOffscreen(e Entity) bool {
 	return false
 }
 
-func (r *Renderer) RemoveEntity(e Entity) {
-	// panic(e)
-	for i, entry := range r.entities {
-		if entry == e {
-			r.entities = removeIdx(r.entities, i)
+// Mutably deletes all nil values from entity map
+func filterDead(m map[int]Entity) {
+	for i, e := range m {
+		if e == nil {
+      panic(e)
+			delete(m, i)
 		}
 	}
-}
-
-func removeIdx(slice []Entity, idx int) []Entity {
-	var output []Entity
-	for i, element := range slice {
-		if i != idx {
-			output = append(output, element)
-		}
-	}
-	return output
 }
 
 func (r *Renderer) Tick() {
-	for i, item := range r.entities {
+	for _, item := range r.entities {
 		if item == nil {
 			continue
 		}
 		item.Tick(r)
 		if r.IsOffscreen(item) {
-			r.entities = removeIdx(r.entities, i)
+      item = nil
+      filterDead(r.entities)
+			// panic(item)
+			// kill(item)
+			// r.entities = removeIdx(r.entities, i)
 		}
 	}
 }

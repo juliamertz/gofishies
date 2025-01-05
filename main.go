@@ -16,22 +16,22 @@ func check(err error) {
 	}
 }
 
-func mkSea(width int, height int) []Entity {
-	return []Entity{
-		&Castle{Pos: Pos{X: width - 34, Y: height - 14}},
-		&Fish{variation: 0, direction: Right, Pos: Pos{X: width / 3, Y: 15}},
-		&Fish{variation: 1, direction: Right, Pos: Pos{X: 2, Y: 20}},
-		&Fish{variation: 2, direction: Right, Pos: Pos{X: 2, Y: 10}},
-		&Whale{direction: Left, Pos: Pos{X: width - 5, Y: 20}},
-		&Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
-		&Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 4},
-		&Waves{Pos: Pos{X: 0, Y: 5}},
-    &Boat{variation: 0,Pos: Pos{X: width - 10, Y: 0}},
+func mkSea(width int, height int) map[int]Entity {
+	return map[int]Entity{
+		// 0: &Castle{Pos: Pos{X: width - 34, Y: height - 14}},
+		// 1: &Fish{variation: 0, direction: Right, Pos: Pos{X: width / 3, Y: 15}},
+		// 2: &Fish{variation: 1, direction: Right, Pos: Pos{X: 2, Y: 20}},
+		// 3: &Fish{variation: 2, direction: Right, Pos: Pos{X: 2, Y: 10}},
+		4: &Whale{direction: Left, Pos: Pos{X: width - 5, Y: 20}},
+		// 5: &Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
+		// 6: &Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 4},
+		// 7: &Waves{Pos: Pos{X: 0, Y: 5}},
+		// 8: &Boat{variation: 0, Pos: Pos{X: width - 10, Y: 0}},
 	}
 }
 
 type Spawnable interface {
-	Spawn(* Renderer)
+	Spawn(*Renderer)
 }
 
 type Spawner struct {
@@ -40,12 +40,10 @@ type Spawner struct {
 }
 
 func (s *Spawner) spawnRandom() {
-  // fmt.Println("lenpool: ", len(s.pool))
-	// i := rand.IntN(len(s.pool))
-  i := RNG.IntN(len(s.pool))
-  if i > len(s.pool) {
-    panic("why the fuck does this happpen")
-  }
+	i := RNG.IntN(len(s.pool))
+	if i > len(s.pool) {
+    panic("")
+	}
 	s.pool[i].Spawn(s.renderer)
 }
 
@@ -66,12 +64,8 @@ func main() {
 
 	s := Spawner{
 		renderer: &r,
-	   pool:     []Spawnable{&Fish{},&Whale{}},
+		pool:     []Spawnable{&Fish{}, &Whale{}},
 	}
-	// s.spawnRandom()
-	// s.spawnRandom()
-	// s.spawnRandom()
-	// s.spawnRandom()
 
 	defer r.screen.Fini()
 	go eventHandler(&r, &s)
@@ -104,12 +98,12 @@ func drawCurrent(r *Renderer) {
 		check(err)
 		lines := []string{
 			fmt.Sprintf("entities: %d", len(r.entities)),
-			fmt.Sprintf("entities: %s", string(ser)),
 			fmt.Sprintf("tickRate: %d", r.tickRate),
+			fmt.Sprintf("entities: %s", string(ser)),
 		}
-    for i, line := range lines {
-      r.DrawText(line, Pos{Y: i})
-    }
+		for i, line := range lines {
+			r.DrawText(line, Pos{Y: i})
+		}
 	}
 
 	// renderer.DrawText(fmt.Sprintf("shouldFill: %v", shouldFill), Pos{X: 10, Y: 5})
@@ -137,10 +131,10 @@ func eventHandler(r *Renderer, s *Spawner) {
 			}
 			switch ev.Rune() {
 			case 'r':
-        // s.spawnRandom()
-        // s.spawnRandom()
-        // s.spawnRandom()
-        s.spawnRandom()
+				// s.spawnRandom()
+				// s.spawnRandom()
+				// s.spawnRandom()
+				s.spawnRandom()
 			case 'q':
 				r.screen.Fini()
 				os.Exit(0)

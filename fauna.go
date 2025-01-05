@@ -62,7 +62,7 @@ func (w *Whale) Spawn(r *Renderer) {
 	_, lines := r.screen.Size()
 	height := rand.IntN(lines - r.seaLevel)
 	w.Pos = Pos{Y: r.seaLevel + height}
-	r.entities = append(r.entities, w)
+	r.entities[len(r.entities)] = w
 }
 
 func (w *Whale) Tick(r *Renderer) {
@@ -74,9 +74,10 @@ func (w *Whale) Tick(r *Renderer) {
 		case Right:
 			w.Pos.X++
 		}
-		if RandOneIn(20) {
-			r.entities = append(r.entities, &Bubble{Pos: w.Pos})
-		}
+
+		// if RandOneIn(20) {
+		// 	r.entities[len(r.entities)] = &Bubble{Pos: w.Pos}
+		// }
 	} else {
 		w.tick++
 	}
@@ -99,7 +100,7 @@ func (f *Fish) Spawn(r *Renderer) {
 	f.variation = rand.IntN(3)
 	f.direction = Right
 	f.Pos = Pos{Y: r.seaLevel + height}
-	r.entities = append(r.entities, f)
+	r.entities[len(r.entities)] = f
 }
 
 func (f *Fish) Render(r *Renderer) (string, string) {
@@ -147,7 +148,6 @@ y
  \ \      /  \
   ` + `'\'"'"'`
 
-
 	}
 
 	if f.direction == Right {
@@ -165,7 +165,7 @@ func (f *Fish) GetPos() Pos {
 func (f *Fish) Tick(r *Renderer) {
 	if f.cycle == 10 {
 		if RandOneIn(20) {
-			r.entities = append(r.entities, &Bubble{Pos: f.Pos})
+			r.entities[len(r.entities)] = &Bubble{Pos: f.Pos}
 		}
 		f.cycle = 0
 		switch f.direction {
@@ -178,39 +178,3 @@ func (f *Fish) Tick(r *Renderer) {
 		f.cycle++
 	}
 }
-
-// // TESTING: blok,
-//
-// type Block struct {
-// 	Pos       Pos
-// }
-//
-// func (f *Block) DefaultColor() tcell.Color {
-// 	return tcell.ColorOrange
-// }
-//
-// func (f *Block) Spawn(r *Renderer) {
-// 	_, lines := r.screen.Size()
-// 	height := rand.IntN(lines - r.seaLevel)
-// 	f.Pos = Pos{Y: r.seaLevel + height}
-// 	r.entities = append(r.entities, f)
-// }
-//
-// func (f *Block) Render(r *Renderer) (string, string) {
-//   art := ` xox
-//  o o
-//  xox`
-//   colors := ` rwr
-//  w w
-//  rwr`
-//
-// 	return art, colors
-// }
-//
-// func (f *Block) GetPos() Pos {
-// 	return f.Pos
-// }
-//
-// func (f *Block) Tick(r *Renderer) {
-// }
-//
