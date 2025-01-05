@@ -18,15 +18,15 @@ func check(err error) {
 
 func mkSea(width int, height int) map[int]Entity {
 	return map[int]Entity{
-		// 0: &Castle{Pos: Pos{X: width - 34, Y: height - 14}},
-		// 1: &Fish{variation: 0, direction: Right, Pos: Pos{X: width / 3, Y: 15}},
-		// 2: &Fish{variation: 1, direction: Right, Pos: Pos{X: 2, Y: 20}},
-		// 3: &Fish{variation: 2, direction: Right, Pos: Pos{X: 2, Y: 10}},
+		0: &Castle{Pos: Pos{X: width - 34, Y: height - 14}},
+		1: &Fish{variation: 0, direction: Right, Pos: Pos{X: width / 3, Y: 15}},
+		2: &Fish{variation: 1, direction: Right, Pos: Pos{X: 2, Y: 20}},
+		3: &Fish{variation: 2, direction: Right, Pos: Pos{X: 2, Y: 10}},
 		4: &Whale{direction: Left, Pos: Pos{X: width - 5, Y: 20}},
-		// 5: &Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
-		// 6: &Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 4},
-		// 7: &Waves{Pos: Pos{X: 0, Y: 5}},
-		// 8: &Boat{variation: 0, Pos: Pos{X: width - 10, Y: 0}},
+		5: &Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
+		6: &Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 4},
+		7: &Waves{Pos: Pos{X: 0, Y: 5}},
+		8: &Boat{variation: 0, Pos: Pos{X: width - 10, Y: 0}},
 	}
 }
 

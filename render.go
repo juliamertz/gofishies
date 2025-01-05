@@ -139,10 +139,6 @@ type Entity interface {
 	DefaultColor() tcell.Color
 }
 
-func Kill(e *Entity) {
-	*e = nil
-}
-
 type Renderer struct {
 	screen tcell.Screen
 	canvas Canvas
@@ -177,28 +173,14 @@ func (r *Renderer) IsOffscreen(e Entity) bool {
 	return false
 }
 
-// Mutably deletes all nil values from entity map
-func filterDead(m map[int]Entity) {
-	for i, e := range m {
-		if e == nil {
-      panic(e)
-			delete(m, i)
-		}
-	}
-}
-
 func (r *Renderer) Tick() {
-	for _, item := range r.entities {
+	for i, item := range r.entities {
 		if item == nil {
 			continue
 		}
 		item.Tick(r)
 		if r.IsOffscreen(item) {
-      item = nil
-      filterDead(r.entities)
-			// panic(item)
-			// kill(item)
-			// r.entities = removeIdx(r.entities, i)
+      delete(r.entities, i)
 		}
 	}
 }
