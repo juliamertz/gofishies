@@ -68,13 +68,13 @@ func (w *Whale) GetPos() Pos {
 
 func (w *Whale) Spawn(r *Renderer) {
 	cols, lines := r.screen.Size()
-	height := rand.IntN(lines - r.seaLevel)
-  dir := Direction(rand.IntN(2))
-  w.direction = dir 
-  if w.direction == Left {
-    w.Pos.X = cols - 5
-  } 
-  w.Pos.Y = r.seaLevel + height
+	height := rand.IntN(lines - r.seaLevel - 5)
+	dir := Direction(rand.IntN(2))
+	w.direction = dir
+	if w.direction == Left {
+		w.Pos.X = cols - 5
+	}
+	w.Pos.Y = r.seaLevel + height
 	r.entities = append(r.entities, w)
 }
 
