@@ -85,18 +85,16 @@ func CanvasFromArt(art string, colors string, defaultColor tcell.Color) Canvas {
 			if y > len(colorLines)-1 || x > len(colorLines[y])-1 {
 				color = &defaultColor
 			} else {
-				color = ColorFromRune(rune(colorLines[y][x]))
+				c := ColorFromRune(rune(colorLines[y][x]))
+				color = &c
 			}
 
-			if color == nil {
-				n := tcell.ColorNone
-				color = &n
+			if *color == tcell.ColorNone {
 				if ch == ' ' {
 					ch = 0
+				} else {
+					color = &defaultColor
 				}
-			}
-			if *color == tcell.ColorDefault {
-				color = &defaultColor
 			}
 
 			buff.cells[y][x] = Cell{
@@ -108,29 +106,28 @@ func CanvasFromArt(art string, colors string, defaultColor tcell.Color) Canvas {
 	return buff
 }
 
-func ColorFromRune(r rune) *tcell.Color {
-	var color tcell.Color
+func ColorFromRune(r rune) tcell.Color {
 	switch r {
 	case 'r':
-		color = tcell.ColorRed
+		return tcell.ColorRed
 	case 'g':
-		color = tcell.ColorGreen
+		return tcell.ColorGreen
 	case 'y':
-		color = tcell.ColorYellow
+		return tcell.ColorYellow
 	case 'b':
-		color = tcell.ColorBlue
+		return tcell.ColorBlue
 	case 'p':
-		color = tcell.ColorPurple
+		return tcell.ColorPurple
 	case 'c':
-		color = tcell.ColorLightCyan
+		return tcell.ColorLightCyan
 	case 'w':
-		color = tcell.ColorWhite
+		return tcell.ColorWhite
 	case 'd':
-		color = tcell.ColorDefault
-	case ' ':
-		return nil
+		return tcell.ColorDefault
+		// case ' ':
+		// 	return tcell.ColorNone
 	}
-	return &color
+	return tcell.ColorNone
 }
 
 type Entity interface {
