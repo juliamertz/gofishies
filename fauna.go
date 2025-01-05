@@ -62,7 +62,7 @@ func (w *Whale) Spawn(r *Renderer) {
 	_, lines := r.screen.Size()
 	height := rand.IntN(lines - r.seaLevel)
 	w.Pos = Pos{Y: r.seaLevel + height}
-	r.entities[len(r.entities)] = w
+  r.entities = append(r.entities, w)
 }
 
 func (w *Whale) Tick(r *Renderer) {
@@ -100,7 +100,7 @@ func (f *Fish) Spawn(r *Renderer) {
 	f.variation = rand.IntN(3)
 	f.direction = Right
 	f.Pos = Pos{Y: r.seaLevel + height}
-	r.entities[len(r.entities)] = f
+  r.entities = append(r.entities, f)
 }
 
 func (f *Fish) Render(r *Renderer) (string, string) {
@@ -165,7 +165,7 @@ func (f *Fish) GetPos() Pos {
 func (f *Fish) Tick(r *Renderer) {
 	if f.cycle == 10 {
 		if RandOneIn(20) {
-			r.entities[len(r.entities)] = &Bubble{Pos: f.Pos}
+			r.entities = append(r.entities, &Bubble{Pos: f.Pos})
 		}
 		f.cycle = 0
 		switch f.direction {

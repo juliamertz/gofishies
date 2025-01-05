@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
@@ -149,7 +150,7 @@ type Renderer struct {
 	seaLevel    int
 	tickRate    int
 
-	entities map[int]Entity
+	entities []Entity
 }
 
 func (r *Renderer) IsOffscreen(e Entity) bool {
@@ -173,6 +174,16 @@ func (r *Renderer) IsOffscreen(e Entity) bool {
 	return false
 }
 
+func FilterNil(input []Entity) []Entity {
+	result := make([]Entity, 0, len(input))
+	for _, elem := range input {
+		if elem != nil {
+			result = append(result, elem)
+		}
+	}
+	return result
+}
+
 func (r *Renderer) Tick() {
 	for i, item := range r.entities {
 		if item == nil {
@@ -180,7 +191,7 @@ func (r *Renderer) Tick() {
 		}
 		item.Tick(r)
 		if r.IsOffscreen(item) {
-      delete(r.entities, i)
+			r.entities = FilterNil(slices.Delete(r.entities, i, i+1))
 		}
 	}
 }
