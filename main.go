@@ -32,6 +32,7 @@ func mkSea(width int, height int) []Entity {
 
 type Spawnable interface {
 	Spawn(*Renderer)
+  Clone() Spawnable
 }
 
 type Spawner struct {
@@ -44,7 +45,8 @@ func (s *Spawner) spawnRandom() {
 	if i > len(s.pool) {
     panic("")
 	}
-	s.pool[i].Spawn(s.renderer)
+
+	s.pool[i].Clone().Spawn(s.renderer)
 }
 
 func main() {
@@ -131,9 +133,6 @@ func eventHandler(r *Renderer, s *Spawner) {
 			}
 			switch ev.Rune() {
 			case 'r':
-				// s.spawnRandom()
-				// s.spawnRandom()
-				// s.spawnRandom()
 				s.spawnRandom()
 			case 'q':
 				r.screen.Fini()

@@ -67,9 +67,14 @@ func (w *Whale) GetPos() Pos {
 }
 
 func (w *Whale) Spawn(r *Renderer) {
-	_, lines := r.screen.Size()
+	cols, lines := r.screen.Size()
 	height := rand.IntN(lines - r.seaLevel)
-	w.Pos = Pos{Y: r.seaLevel + height}
+  dir := Direction(rand.IntN(2))
+  w.direction = dir 
+  if w.direction == Left {
+    w.Pos.X = cols - 5
+  } 
+  w.Pos.Y = r.seaLevel + height
 	r.entities = append(r.entities, w)
 }
 
@@ -91,6 +96,12 @@ func (w *Whale) Tick(r *Renderer) {
 	}
 }
 
+func (w *Whale) Clone() Spawnable {
+	return &Whale{
+		direction: w.direction,
+	}
+}
+
 type Fish struct {
 	Pos       Pos
 	cycle     int
@@ -100,15 +111,6 @@ type Fish struct {
 
 func (f *Fish) DefaultColor() tcell.Color {
 	return tcell.ColorOrange
-}
-
-func (f *Fish) Spawn(r *Renderer) {
-	_, lines := r.screen.Size()
-	height := rand.IntN(lines - r.seaLevel)
-	f.variation = rand.IntN(3)
-	f.direction = Right
-	f.Pos = Pos{Y: r.seaLevel + height}
-	r.entities = append(r.entities, f)
 }
 
 func (f *Fish) Render(r *Renderer) (string, string) {
@@ -184,5 +186,21 @@ func (f *Fish) Tick(r *Renderer) {
 		}
 	} else {
 		f.cycle++
+	}
+}
+
+func (f *Fish) Spawn(r *Renderer) {
+	_, lines := r.screen.Size()
+	height := rand.IntN(lines - r.seaLevel)
+	f.variation = rand.IntN(3)
+	f.direction = Direction(rand.IntN(2))
+	f.Pos = Pos{Y: r.seaLevel + height}
+	r.entities = append(r.entities, f)
+}
+
+func (f *Fish) Clone() Spawnable {
+	return &Fish{
+		variation: f.variation,
+		direction: f.direction,
 	}
 }
