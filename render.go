@@ -200,7 +200,7 @@ func (r *Renderer) Tick() {
 		}
 		item.Tick(r)
 		if r.IsOffscreen(item) {
-      r.KillEntity(item)
+			r.KillEntity(item)
 		}
 	}
 }

@@ -87,7 +87,7 @@ func (f *Bubble) GetPos() Pos {
 
 func (b *Bubble) Tick(r *Renderer) {
 	if b.Pos.Y < r.seaLevel+3 {
-    r.KillEntity(b)
+		r.KillEntity(b)
 	}
 	if b.ticks%20 == 0 {
 		b.Pos.Y--

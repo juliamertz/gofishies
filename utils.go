@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-
 var RNG = rand.New(rand.NewPCG(uint64(0), uint64(time.Now().UnixNano())))
 
 func SeededRandIntN(n int, seed uint64) int {
@@ -41,21 +40,21 @@ func reverseString(s string) string {
 	return string(runes)
 }
 
-// reverse and padd whitespace 
+// reverse and padd whitespace
 func reverseArt(s string) string {
 	width := findArtWidth(s)
-  lines := strings.Split(s, "\n")
-  for i, line := range lines {
-    lines[i] = reverseString(line)
-    if len(lines[i]) < width {
-      lines[i] = strings.Repeat(" ", width - len(lines[i])) + lines[i] 
-    }
-  }
-  return strings.Join(lines, "\n")
+	lines := strings.Split(s, "\n")
+	for i, line := range lines {
+		lines[i] = reverseString(line)
+		if len(lines[i]) < width {
+			lines[i] = strings.Repeat(" ", width-len(lines[i])) + lines[i]
+		}
+	}
+	return strings.Join(lines, "\n")
 }
 
 func flipAsciiArt(art string) string {
-  // TODO: expand symbol map
+	// TODO: expand symbol map
 	symbolMap := map[rune]rune{
 		'<':  '>',
 		'>':  '<',
@@ -67,7 +66,7 @@ func flipAsciiArt(art string) string {
 		'\\': '/',
 	}
 
-  reversed := reverseArt(art)
+	reversed := reverseArt(art)
 	lines := strings.Split(reversed, "\n")
 	for i, _ := range lines {
 		// lines[i] = reverseArt(line)
