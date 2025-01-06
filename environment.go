@@ -14,7 +14,7 @@ type Waves struct {
 }
 
 func (f *Waves) DefaultColor() tcell.Color {
-	return tcell.ColorGreen
+	return tcell.ColorBlue
 }
 
 func (f *Waves) Render(r *Renderer) (string, string) {
@@ -49,7 +49,7 @@ func (f *Waves) GetPos() Pos {
 }
 
 func (f *Waves) Tick(r *Renderer) {
-	if f.ticks == 20 {
+	if f.ticks == 80 {
 		f.cycle++
 		f.ticks = 0
 	} else {
@@ -206,7 +206,7 @@ func (b *Boat) GetPos() Pos {
 }
 
 func (b *Boat) Tick(r *Renderer) {
-	if b.ticks > 20 {
+	if b.ticks > 60 {
 		b.ticks = 0
 		if b.direction == Left {
 			b.Pos.X--

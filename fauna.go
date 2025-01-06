@@ -6,7 +6,6 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-
 // Whale
 
 type Whale struct {
@@ -65,7 +64,7 @@ func (w *Whale) Spawn(r *Renderer) {
 }
 
 func (w *Whale) Tick(r *Renderer) {
-	if w.tick == 10 {
+	if w.tick == 30 {
 		w.tick = 0
 		switch w.direction {
 		case Left:
@@ -188,5 +187,67 @@ func (f *Fish) Clone() Spawnable {
 	return &Fish{
 		variation: f.variation,
 		direction: f.direction,
+	}
+}
+
+// Ducks
+
+type Duck struct {
+	Pos       Pos
+	ticks     int
+	stage     int
+	direction Direction
+}
+
+func (f *Duck) DefaultColor() tcell.Color {
+	return tcell.ColorGray
+}
+
+func (d *Duck) Render(r *Renderer) (string, string) {
+	var art string
+	switch d.stage {
+	case 0:
+		art = `
+      _
+,____(')=
+ \~~= ')`
+	case 1:
+		art = `
+      _
+,____(')<
+ \~~= ')`
+	}
+
+	colors := `
+      w
+wwwwwwwwy
+ wwwwdww`
+
+	if d.direction == Left {
+		return flipArt(art, colors)
+	}
+	return art, colors
+}
+
+func (d *Duck) GetPos() Pos {
+	return d.Pos
+}
+
+func (d *Duck) Tick(r *Renderer) {
+	if d.ticks > 60 {
+		if d.stage >= 1 {
+			d.stage = 0
+		} else {
+			d.stage = 1
+		}
+
+		d.ticks = 0
+		if d.direction == Left {
+			d.Pos.X--
+		} else {
+			d.Pos.X++
+		}
+	} else {
+		d.ticks++
 	}
 }

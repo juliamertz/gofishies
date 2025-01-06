@@ -26,7 +26,8 @@ func mkSea(width int, height int) []Entity {
 		&Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
 		&Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 4},
 		&Waves{Pos: Pos{X: 0, Y: 5}},
-		&Boat{variation: 1, Pos: Pos{X: width - 10, Y: 0}},
+		&Boat{variation: 1, Pos: Pos{X: width - 30, Y: 0}},
+		&Duck{direction: Right, Pos: Pos{X: 5, Y: 2}},
 	}
 }
 
@@ -56,7 +57,7 @@ func main() {
 	check(err)
 
 	r := Renderer{
-		tickRate: 10,
+		tickRate: 1,
 		seaLevel: 5,
 		paused:   false,
 		screen:   screen,
@@ -107,9 +108,8 @@ func drawCurrent(r *Renderer) {
 		}
 	}
 
-	// renderer.DrawText(fmt.Sprintf("shouldFill: %v", shouldFill), Pos{X: 10, Y: 5})
 	r.screen.Show()
-	time.Sleep(time.Duration(r.tickRate) * time.Millisecond)
+	time.Sleep(time.Duration(1/r.tickRate) * time.Millisecond)
 }
 
 func join(lines []string) string {
@@ -132,9 +132,9 @@ func eventHandler(r *Renderer, s *Spawner) {
 			}
 			switch ev.Rune() {
 			case 's':
-        s.spawnRandom()
+				s.spawnRandom()
 			case 'r':
-        r.entities = mkSea(r.screen.Size())
+				r.entities = mkSea(r.screen.Size())
 			case 'q':
 				r.screen.Fini()
 				os.Exit(0)
