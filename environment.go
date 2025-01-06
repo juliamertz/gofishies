@@ -1,34 +1,18 @@
 package main
 
 import (
-	"math/rand/v2"
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
 )
 
-type Waves struct {
-	Pos   Pos
-	cycle int
-	ticks int
-}
-
-func (f *Waves) DefaultColor() tcell.Color {
-	return tcell.ColorBlue
-}
-
-func (f *Waves) Render(r *Renderer) (string, string) {
-	width, _ := r.screen.Size()
-
-	src := rand.NewPCG(uint64(width), uint64(f.cycle))
-	rng := rand.New(src)
-
+func Waves(pos Pos, width int) Entity {
 	art := strings.Repeat("~", width) + "\n"
 	colors := strings.Repeat("b", width) + "\n"
 	waveHeight := 3
 	for i := 0; i < waveHeight; i++ {
 		for j := 0; j < width; j++ {
-			r := rng.IntN(4)
+			r := RNG.IntN(4)
 			if r == 1 {
 				art += "^"
 				colors += "b"
@@ -41,74 +25,43 @@ func (f *Waves) Render(r *Renderer) (string, string) {
 		colors += "\n"
 	}
 
-	return art, colors
+	return createEntity(
+		"waves",
+		[]string{art},
+		[]string{colors},
+		tcell.ColorWhite,
+		pos,
+		Right, // irrelevant for waves
+		func(e *Entity, r *Renderer) {},
+	)
 }
 
-func (f *Waves) GetPos() Pos {
-	return f.Pos
+func Bubble(pos Pos) Entity {
+	return createEntity(
+		"boat",
+		[]string{".", "o", "O"},
+		[]string{"b"},
+		tcell.ColorGray,
+		pos,
+		Left,
+		func(e *Entity, r *Renderer) {
+      if e.Pos.Y < r.seaLevel + 3 {
+        r.KillEntity(*e)
+      }
+
+			if e.Tick%20 == 0 {
+				e.Pos.Y--
+			}
+			if e.Tick > 75 {
+				e.CurrentFrame = 1
+			} else if e.Tick > 150 {
+				e.CurrentFrame = 2
+			}
+		},
+	)
 }
 
-func (f *Waves) Tick(r *Renderer) {
-	if f.ticks == 80 {
-		f.cycle++
-		f.ticks = 0
-	} else {
-		f.ticks++
-	}
-}
-
-// Bubble
-
-type Bubble struct {
-	Pos   Pos
-	ticks int
-	stage int
-}
-
-func (f *Bubble) DefaultColor() tcell.Color {
-	return tcell.ColorWhite
-}
-
-func (f *Bubble) Render(r *Renderer) (string, string) {
-	var art string
-	switch f.stage {
-	case 0:
-		art = "."
-	case 1:
-		art = "o"
-	}
-
-	return art, "w"
-}
-
-func (f *Bubble) GetPos() Pos {
-	return f.Pos
-}
-
-func (b *Bubble) Tick(r *Renderer) {
-	if b.Pos.Y < r.seaLevel+3 {
-		r.KillEntity(b)
-	}
-	if b.ticks%20 == 0 {
-		b.Pos.Y--
-	}
-	if b.ticks > 150 {
-		b.stage = 1
-	}
-	b.ticks++
-}
-
-// Castle
-
-type Castle struct {
-	Pos Pos
-}
-
-func (f *Castle) DefaultColor() tcell.Color {
-	return tcell.ColorGray
-}
-
-func (f *Castle) Render(r *Renderer) (string, string) {
+func Castle(facing Direction, pos Pos) Entity {
 	art := `
                T~~
                |
@@ -125,95 +78,76 @@ func (f *Castle) Render(r *Renderer) (string, string) {
  |_______|__|_|_|_|__|_______|`
 
 	colors := `
-                rr           
-                             
-              yyy            
-             y   y           
-            y     y          
-           y       y         
-                             
-                             
-                             
-              yyy            
-             yy yy           
-            y y y y          
+                rr
+
+              yyy
+             y   y
+            y     y
+           y       y
+
+
+
+              yyy
+             yy yy
+            y y y y
             yyyyyyy           `
 
-	return art, colors
+	return createEntity(
+		"castle",
+		[]string{art},
+		[]string{colors},
+		tcell.ColorGray,
+		pos,
+		facing,
+		func(e *Entity, r *Renderer) {},
+	)
 }
 
-func (c *Castle) GetPos() Pos {
-	return c.Pos
-}
-
-func (c *Castle) Tick(r *Renderer) {}
-
-// Boat
-
-type Boat struct {
-	Pos       Pos
-	ticks     int
-	variation int
-	direction Direction
-}
-
-func (f *Boat) DefaultColor() tcell.Color {
-	return tcell.ColorGray
-}
-
-func (b *Boat) Render(r *Renderer) (string, string) {
+func Boat(variation int, facing Direction, pos Pos) Entity {
 	var art string
 	var colors string
 
-	switch b.variation {
+	switch variation {
 	case 0:
 		art = `
-        ___\__                                                                                           
-       |______\_____                                                                                     
- _____/_______/_____\_______                                                                             
-|       > > >              /`
+              __/___
+        _____/______|
+_______/_____\_______\_____
+\              < < <       |`
 		colors = `
-        ___\__                                                                                           
-       |______\_____                                                                                     
- _____/_______/_____\_______                                                                             
-|ddddddd>d>d>dddddddddddddd/`
+              __/___
+        _____/______|
+_______/_____\_______\_____
+\dddddddddddddd<d<d<ddddddd|`
 
 	case 1:
 		art = `
-   |    |    |                 
-   )_)  )_)  )_)              
-  )___))___))___)\            
- )____)____)_____)\\
-_____|____|____|____\\\__
-\                   /`
+           |    |    |
+         (_(  (_(  (_(
+       /(___((___((___(
+     //(_____(____(____(
+__///____|____|____|_____
+    \                   /`
 		colors = `
-   w    w    w                 
-   www  www  www              
-  wwwwwwwwwwwwwww\            
- wwwwwwwwwwwwwwwww\\
-_____|____|____|____\\\__
-\ddddddddddddddddddd/`
+           w    w    w
+         www  www  www
+       /wwwwwwwwwwwwwww
+     //wwwwwwwwwwwwwwwww
+__///____|____|____|_____
+    \ddddddddddddddddddd/`
 	}
 
-	if b.direction == Left {
-		return flipArt(art, colors)
-	}
-	return art, colors
-}
-
-func (b *Boat) GetPos() Pos {
-	return b.Pos
-}
-
-func (b *Boat) Tick(r *Renderer) {
-	if b.ticks > 60 {
-		b.ticks = 0
-		if b.direction == Left {
-			b.Pos.X--
-		} else {
-			b.Pos.X++
-		}
-	} else {
-		b.ticks++
-	}
+	return createEntity(
+		"boat",
+		[]string{art},
+		[]string{colors},
+		tcell.ColorGray,
+		pos,
+		facing,
+		func(e *Entity, r *Renderer) {
+			if e.Tick%20 == 0 {
+				e.Move(e.Facing)
+			}
+		},
+	)
 }

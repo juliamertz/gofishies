@@ -1,52 +1,36 @@
 package main
 
 import (
-	"math/rand/v2"
-	"time"
-
 	"github.com/gdamore/tcell/v2"
 )
 
-type Seaweed struct {
-	Pos    Pos
-	length int
-	stage  bool
-}
+func Seaweed(length int, pos Pos) Entity {
+	var parts []string
+	var colorParts []string
 
-func (s *Seaweed) DefaultColor() tcell.Color {
-	return tcell.ColorGreen
-}
-
-func (s *Seaweed) Render(r *Renderer) (string, string) {
-	var art []string
-	var colors []string
-	stage := s.stage
-	for i := 0; i < s.length; i++ {
-		if stage {
-			art = append(art, " )")
-			art = append(art, "( ")
+	for i := 0; i < length; i++ {
+		if i%2 == 0 {
+			parts = append(parts, "( ")
 		} else {
-			art = append(art, "( ")
-			art = append(art, " )")
+			parts = append(parts, " )")
 		}
-		stage = !stage
-		colors = append(colors, "gg")
-		colors = append(colors, "gg")
+		colorParts = append(colorParts, "gg")
 	}
 
-	return join(art), join(colors)
-}
+	art := []string{join(parts), mirrorAsciiArt(join(parts))}
 
-func (s *Seaweed) GetPos() Pos {
-	return s.Pos
-}
+	return createEntity(
+		"seaweed",
+		art,
+		[]string{join(colorParts)},
+		tcell.ColorGreen,
+		pos,
 
-func (s *Seaweed) Tick(r *Renderer) {
-	src := rand.NewPCG(uint64(s.length), uint64(time.Now().UnixNano()))
-	rng := rand.New(src)
-	n := rng.IntN(60)
-
-	if n == 1 {
-		s.stage = !s.stage
-	}
+		Right, // n.a.
+		func(e *Entity, r *Renderer) {
+			if e.Tick%40 == 0 {
+				e.NextFrame()
+			}
+		},
+	)
 }

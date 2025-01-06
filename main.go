@@ -18,36 +18,21 @@ func check(err error) {
 
 func mkSea(width int, height int) []Entity {
 	return []Entity{
-		&Castle{Pos: Pos{X: width - 34, Y: height - 14}},
-		&Fish{variation: 0, direction: Right, Pos: Pos{X: width / 3, Y: 15}},
-		&Fish{variation: 1, direction: Right, Pos: Pos{X: 20, Y: 20}},
-		&Fish{variation: 2, direction: Right, Pos: Pos{X: 2, Y: 10}},
-		&Whale{direction: Left, Pos: Pos{X: width - 5, Y: 20}},
-		&Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
-		&Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 4},
-		&Waves{Pos: Pos{X: 0, Y: 5}},
-		&Duck{direction: Right, Pos: Pos{X: 5, Y: 2}},
-		&Boat{variation: 1, Pos: Pos{X: width - 30, Y: 0}},
-	}
+			Waves(Pos{Y: 5}, width),
+			Seaweed(7, Pos{X: 2, Y: height-7}),
+			Castle(Left, Pos{X: width - 35, Y: height-14}),
+			Fish(1, Right, Pos{X: 2, Y: 5}),
+			Fish(2, Right, Pos{X: 40, Y: 24}),
+			Boat(0, Right, Pos{X: 10, Y: 10}),
+			Duck(Right, Pos{X: 5, Y: 2}),
+			Whale(Right, Pos{X: 5, Y: 15}),
+		}
 }
 
-type Spawnable interface {
-	Spawn(*Renderer)
-	Clone() Spawnable
-}
-
-type Spawner struct {
-	renderer *Renderer
-	pool     []Spawnable
-}
-
-func (s *Spawner) spawnRandom() {
-	i := RNG.IntN(len(s.pool))
-	if i > len(s.pool) {
-		panic("random number is bigger than pool")
-	}
-
-	s.pool[i].Clone().Spawn(s.renderer)
+type EntityCap struct {
+	smallFish int
+	largeFish int
+	boat      int
 }
 
 func main() {
@@ -55,22 +40,16 @@ func main() {
 	check(err)
 	err = screen.Init()
 	check(err)
-
 	r := Renderer{
 		tickRate: 1,
 		seaLevel: 5,
 		paused:   false,
 		screen:   screen,
-		entities: mkSea(screen.Size()),
-	}
-
-	s := Spawner{
-		renderer: &r,
-		pool:     []Spawnable{&Fish{}, &Whale{}},
+    entities: mkSea(screen.Size()),
 	}
 
 	defer r.screen.Fini()
-	go eventHandler(&r, &s)
+	go eventHandler(&r)
 
 	for {
 		if r.paused {
@@ -89,7 +68,7 @@ func drawCurrent(r *Renderer) {
 
 	// create empty canvas
 	width, height := r.screen.Size()
-	r.canvas = NewCanvas(width, height)
+	r.frame = makeFrame(width, height)
 
 	// draw all entities to canvas
 	err := r.Draw()
@@ -116,7 +95,7 @@ func join(lines []string) string {
 	return strings.Join(lines, "\n")
 }
 
-func eventHandler(r *Renderer, s *Spawner) {
+func eventHandler(r *Renderer) {
 	for {
 		ev := r.screen.PollEvent()
 
@@ -124,18 +103,16 @@ func eventHandler(r *Renderer, s *Spawner) {
 		case *tcell.EventResize:
 			r.entities = mkSea(r.screen.Size())
 		case *tcell.EventKey:
-      if ev.Key() == tcell.Key(3) {
+			if ev.Key() == tcell.Key(3) {
 				r.screen.Fini()
 				os.Exit(0)
-      }
-      // this doesn't work for some reason...
+			}
+			// this doesn't work for some reason...
 			// switch ev.Key() {
 			// case tcell.KeyEscape | tcell.KeyCtrlC:
 			// }
 
 			switch ev.Rune() {
-			case 's':
-				s.spawnRandom()
 			case 'r':
 				r.entities = mkSea(r.screen.Size())
 			case 'q':

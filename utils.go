@@ -1,9 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"math/rand/v2"
+	"os"
 	"strings"
 	"time"
+
+	"github.com/gdamore/tcell/v2"
 )
 
 var RNG = rand.New(rand.NewPCG(uint64(0), uint64(time.Now().UnixNano())))
@@ -54,8 +58,9 @@ func reverseArt(s string) string {
 }
 
 // reverse string and replace mapped ascii symbols
-func flipAsciiArt(art string) string {
+func mirrorAsciiArt(art string) string {
 	// TODO: expand symbol map
+  // TODO: Preserve text 
 	symbolMap := map[rune]rune{
 		'<':  '>',
 		'>':  '<',
@@ -63,6 +68,8 @@ func flipAsciiArt(art string) string {
 		')':  '(',
 		'[':  ']',
 		']':  '[',
+		'{':  '}',
+		'}':  '{',
 		'/':  '\\',
 		'\\': '/',
 	}
@@ -81,6 +88,33 @@ func flipAsciiArt(art string) string {
 	return strings.Join(lines, "\n")
 }
 
-func flipArt(art string, colors string) (string, string) {
-	return flipAsciiArt(art), reverseArt(colors)
+func assertEq(a any, b any, msg string) {
+	if a != b {
+		fmt.Println("Assertion failed! ", msg)
+		fmt.Printf("%v == %v\n", a, b)
+    os.Exit(1)
+	}
 }
+
+  func ColorFromRune(r rune) tcell.Color {
+	switch r {
+	case 'r':
+		return tcell.ColorRed
+	case 'g':
+		return tcell.ColorGreen
+	case 'y':
+		return tcell.ColorYellow
+	case 'b':
+		return tcell.ColorBlue
+	case 'p':
+		return tcell.ColorPurple
+	case 'c':
+		return tcell.ColorLightCyan
+	case 'w':
+		return tcell.ColorWhite
+	case 'd':
+		return tcell.ColorDefault
+	}
+	return tcell.ColorNone
+}
+

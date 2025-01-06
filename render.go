@@ -21,7 +21,7 @@ type Cell struct {
 	Bg      tcell.Color
 }
 
-type Canvas struct {
+type Frame struct {
 	cells [][]Cell
 }
 
@@ -30,16 +30,120 @@ type Pos struct {
 	Y int
 }
 
-type Entity interface {
-	Render(r *Renderer) (string, string)
-	Tick(*Renderer)
-	GetPos() Pos
-	DefaultColor() tcell.Color
+type Entity struct {
+	Id           string
+	Pos          Pos
+	Facing       Direction
+	CurrentFrame int
+	Tick         int
+
+	defaultColor tcell.Color
+	frames       []Frame
+
+	width  int
+	height int
+
+	update func(*Entity, *Renderer)
+}
+
+func (e *Entity) Move(dir Direction) {
+	switch dir {
+	case Left:
+		e.Pos.X--
+	case Right:
+		e.Pos.X++
+	}
+}
+
+func (e *Entity) NextFrame() {
+	e.CurrentFrame++
+	if e.CurrentFrame >= len(e.frames) {
+		e.CurrentFrame = 0
+	}
+}
+
+func generateFrame(art string, colors string, defaultColor tcell.Color) Frame {
+	lines := strings.Split(art, "\n")
+	colorLines := strings.Split(colors, "\n")
+	buff := makeFrame(findArtWidth(art), len(lines))
+
+	for y, line := range lines {
+		for x, ch := range line {
+			var color *tcell.Color
+
+			if y > len(colorLines)-1 || x > len(colorLines[y])-1 {
+				color = &defaultColor
+			} else {
+				c := ColorFromRune(rune(colorLines[y][x]))
+				color = &c
+			}
+
+			if *color == tcell.ColorNone {
+				// if the cell doesn't have a color nor a charachter the char is set to 0
+				// then the renderer knows it can be skipped over
+				if ch == ' ' {
+					ch = 0
+				} else {
+					// if it does hold a char which isn't whitespace we can apply the default color
+					color = &defaultColor
+				}
+			}
+
+			buff.cells[y][x] = Cell{
+				Fg:      *color,
+				Content: byte(ch),
+			}
+		}
+	}
+	return buff
+}
+
+func createEntity(
+	id string,
+	art []string,
+	colorMap []string,
+	defaultColor tcell.Color,
+	pos Pos,
+	facing Direction,
+	update func(*Entity, *Renderer),
+) Entity {
+	var frames []Frame
+	// generate frames for entity
+	for i, frame := range art {
+		var cMap string
+		if i < len(colorMap) {
+			cMap = colorMap[i]
+		} else {
+			// fallback to first entry if frame doesn't have corresponding color map
+			cMap = colorMap[0]
+		}
+
+		// assume all art is left facing
+		if facing == Right {
+			frame = mirrorAsciiArt(frame)
+			cMap = reverseArt(cMap)
+		}
+
+		frames = append(frames, generateFrame(frame, cMap, defaultColor))
+	}
+
+	return Entity{
+		Id:           id,
+		Pos:          pos,
+		Facing:       facing,
+		defaultColor: defaultColor,
+		frames:       frames,
+		update:       update,
+
+		// assume all frames are of same height/width
+		height: len(frames[0].cells),
+		width:  len(frames[0].cells[0]),
+	}
 }
 
 type Renderer struct {
 	screen tcell.Screen
-	canvas Canvas
+	frame  Frame
 
 	debug       bool
 	maxEntities uint32
@@ -50,7 +154,7 @@ type Renderer struct {
 	entities []Entity
 }
 
-func (c *Canvas) toString() string {
+func (c *Frame) toString() string {
 	buff := ""
 	for _, line := range c.cells {
 		for _, cell := range line {
@@ -65,16 +169,17 @@ func isWhitespace(ch byte) bool {
 	return ch == ' ' || byte(ch) == 0
 }
 
-func NewCanvas(width int, height int) Canvas {
+// Create empty sized frame
+func makeFrame(width int, height int) Frame {
 	buff := make([][]Cell, height, height)
 	for i := range buff {
 		buff[i] = make([]Cell, width, width)
 	}
-	return Canvas{cells: buff}
+	return Frame{cells: buff}
 }
 
 // Merge canvas cells into parent canvas
-func (c *Canvas) MergeAt(art Canvas, pos Pos) {
+func (c *Frame) MergeAt(art Frame, pos Pos) {
 	y := pos.Y
 	x := pos.X
 
@@ -98,112 +203,40 @@ func (c *Canvas) MergeAt(art Canvas, pos Pos) {
 	}
 }
 
-func CanvasFromArt(art string, colors string, defaultColor tcell.Color) Canvas {
-	lines := strings.Split(art, "\n")
-	colorLines := strings.Split(colors, "\n")
-	buff := NewCanvas(findArtWidth(art), len(lines))
-
-	for y, line := range lines {
-		for x, ch := range line {
-			var color *tcell.Color
-
-			if y > len(colorLines)-1 || x > len(colorLines[y])-1 {
-				color = &defaultColor
-			} else {
-				c := ColorFromRune(rune(colorLines[y][x]))
-				color = &c
-			}
-
-			if *color == tcell.ColorNone {
-				if ch == ' ' {
-					ch = 0
-				} else {
-					color = &defaultColor
-				}
-			}
-
-			buff.cells[y][x] = Cell{
-				Fg:      *color,
-				Content: byte(ch),
-			}
-		}
-	}
-	return buff
-}
-
-func ColorFromRune(r rune) tcell.Color {
-	switch r {
-	case 'r':
-		return tcell.ColorRed
-	case 'g':
-		return tcell.ColorGreen
-	case 'y':
-		return tcell.ColorYellow
-	case 'b':
-		return tcell.ColorBlue
-	case 'p':
-		return tcell.ColorPurple
-	case 'c':
-		return tcell.ColorLightCyan
-	case 'w':
-		return tcell.ColorWhite
-	case 'd':
-		return tcell.ColorDefault
-		// case ' ':
-		// 	return tcell.ColorNone
-	}
-	return tcell.ColorNone
-}
-
 func (r *Renderer) IsOffscreen(e Entity) bool {
-	pos := e.GetPos()
-	rendered, _ := e.Render(r)
-	split := strings.Split(rendered, "\n")
-
-	height := len(split)
-	width := findArtWidth(rendered)
-
 	cols, lines := r.screen.Size()
 
-	if pos.X >= cols || pos.X+width <= 0 {
+	if e.Pos.X >= cols || e.Pos.X+e.width <= 0 {
 		return true
 	}
 
-	if pos.Y > lines || pos.Y+height <= 0 {
+	if e.Pos.Y > lines || e.Pos.Y+e.height <= 0 {
 		return true
 	}
 
 	return false
 }
 
-func FilterNil(input []Entity) []Entity {
-	result := make([]Entity, 0, len(input))
-	for _, elem := range input {
-		if elem != nil {
-			result = append(result, elem)
-		}
-	}
-	return result
-}
-
 func (r *Renderer) KillEntity(v Entity) {
 	for i, e := range r.entities {
-		if e == v {
-			r.entities = FilterNil(slices.Delete(r.entities, i, i+1))
+		// TODO: find better way to determine uniqueness
+		if e.Id == v.Id && e.Pos == v.Pos {
+			r.entities = slices.Delete(r.entities, i, i+1)
 			break
 		}
 	}
 }
 
 func (r *Renderer) Tick() {
-	for _, item := range r.entities {
-		if item == nil {
+	for i, e := range slices.Backward(r.entities) {
+		// TODO: figure out why it doesn't update if `e` is passed instead if indexing
+		r.entities[i].Tick++
+		if r.IsOffscreen(e) {
+			r.KillEntity(e)
 			continue
 		}
-		item.Tick(r)
-		if r.IsOffscreen(item) {
-			r.KillEntity(item)
-		}
+
+		e.update(&r.entities[i], r)
 	}
 }
 
@@ -224,16 +257,15 @@ func (r *Renderer) Draw() error {
 
 	// render entities
 	for _, e := range r.entities {
-		if e == nil {
+		// TODO: figure out why this is needed
+		if e.CurrentFrame > len(e.frames)-1 {
 			continue
 		}
-		art, colors := e.Render(r)
-		c := CanvasFromArt(art, colors, e.DefaultColor())
-		r.canvas.MergeAt(c, e.GetPos())
+		r.frame.MergeAt(e.frames[e.CurrentFrame], e.Pos)
 	}
 
 	// print each cell of final canvas
-	for y, line := range r.canvas.cells {
+	for y, line := range r.frame.cells {
 		for x, cell := range line {
 			if isWhitespace(cell.Content) {
 				continue

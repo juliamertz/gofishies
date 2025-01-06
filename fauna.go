@@ -1,108 +1,14 @@
 package main
 
 import (
-	"math/rand/v2"
-
 	"github.com/gdamore/tcell/v2"
 )
 
-// Whale
-
-type Whale struct {
-	Pos       Pos
-	tick      int
-	direction Direction
-}
-
-func (w *Whale) DefaultColor() tcell.Color {
-	return tcell.ColorGreen
-}
-
-func (w *Whale) Render(r *Renderer) (string, string) {
-	art := join([]string{
-		"   ______/~/~/~/__           /((",
-		" // __            ====__    /_((",
-		"//  @))       ))))      ===/__((",
-		"))           )))))))        __((",
-		"\\\\     \\)     ))))    __===\\ _((",
-		" \\\\_______________====      \\_((",
-		"                             \\((",
-	})
-
-	colors := join([]string{
-		"   ______/~/~/~/__           /((",
-		" //d__dddddddddddd====__    /_(w",
-		"//ddwggddddddd))))dddddd===/__(w",
-		"))ddddddddddd)))))))dddddddd__(w",
-		"wwdddddwwdddddwwwwssss__===\\ _(w",
-		" wwwwwwwwwwwwwwwwwwwww      \\_(w",
-		"                             \\(( ",
-	})
-
-	if w.direction == Right {
-		art = flipAsciiArt(art)
-		colors = reverseArt(colors)
-	}
-
-	return art, colors
-}
-
-func (w *Whale) GetPos() Pos {
-	return w.Pos
-}
-
-func (w *Whale) Spawn(r *Renderer) {
-	cols, lines := r.screen.Size()
-	height := rand.IntN(lines - r.seaLevel - 5)
-	dir := Direction(rand.IntN(2))
-	w.direction = dir
-	if w.direction == Left {
-		w.Pos.X = cols - 5
-	}
-	w.Pos.Y = r.seaLevel + height
-	r.entities = append(r.entities, w)
-}
-
-func (w *Whale) Tick(r *Renderer) {
-	if w.tick == 30 {
-		w.tick = 0
-		switch w.direction {
-		case Left:
-			w.Pos.X--
-		case Right:
-			w.Pos.X++
-		}
-
-		if RandOneIn(20) {
-			r.entities = append(r.entities, &Bubble{Pos: w.Pos})
-		}
-	} else {
-		w.tick++
-	}
-}
-
-func (w *Whale) Clone() Spawnable {
-	return &Whale{
-		direction: w.direction,
-	}
-}
-
-type Fish struct {
-	Pos       Pos
-	cycle     int
-	variation int
-	direction Direction
-}
-
-func (f *Fish) DefaultColor() tcell.Color {
-	return tcell.ColorOrange
-}
-
-func (f *Fish) Render(r *Renderer) (string, string) {
+func Fish(variation int, facing Direction, pos Pos) Entity {
 	var art string
 	var colors string
 
-	switch f.variation {
+	switch variation {
 	case 0:
 		art = `
  _ 
@@ -138,116 +44,104 @@ y
 		colors = `
       /
   ,../...
- /       '\  /
-< '  )rwx  =<
- \ \      /  \
+ /ddddddd'\  /
+<d'dd)rgydd=<
+ \d\dddddd/  \
   ''\'"'"'`
 
 	}
 
-	if f.direction == Right {
-		art = flipAsciiArt(art)
-		colors = reverseArt(colors)
+	return createEntity(
+		"fish",
+		[]string{art},
+		[]string{colors},
+		tcell.ColorOrange,
+		pos,
+		facing,
+		func(e *Entity, r *Renderer) {
+			if e.Tick%10 == 0 {
+				e.Move(e.Facing)
+				if RandOneIn(30) {
+					r.entities = append(r.entities, Bubble(e.Pos))
+				}
+			}
+		},
+	)
+}
+
+func Whale(facing Direction, pos Pos) Entity {
+	art := join([]string{
+		"   ______/~/~/~/__           /((",
+		" // __            ====__    /_((",
+		"//  @))       ))))      ===/__((",
+		"))           )))))))        __((",
+		"\\\\     \\)     ))))    __===\\ _((",
+		" \\\\_______________====      \\_((",
+		"                             \\((",
+	})
+
+	colors := join([]string{
+		"   ______/~/~/~/__           /((",
+		" //d__dddddddddddd====__    /_(w",
+		"//ddwggddddddd))))dddddd===/__(w",
+		"))ddddddddddd)))))))dddddddd__(w",
+		"wwdddddwwdddddwwwwdddd__===\\d_(w",
+		" wwwwwwwwwwwwwwwwwwwww      \\_(w",
+		"                             \\((",
+	})
+
+	return createEntity(
+		"whale",
+		[]string{art},
+		[]string{colors},
+		tcell.ColorGreen,
+		pos,
+		facing,
+		func(e *Entity, r *Renderer) {
+			if e.Tick%20 == 0 {
+				e.Move(e.Facing)
+			}
+
+			if RandOneIn(100) {
+				r.entities = append(r.entities, Bubble(e.Pos))
+			}
+		},
+	)
+}
+
+func Duck(facing Direction, pos Pos) Entity {
+	art := []string{
+		`
+  _
+=(')____,
+ (' =~~/`,
+		`
+  _
+>(')____,
+ (' =~~/`,
 	}
 
-	return art, colors
-}
+	colors :=
+		`
+  _
+y(')____,
+ ('d=~~/`
 
-func (f *Fish) GetPos() Pos {
-	return f.Pos
-}
+	return createEntity(
+		"duck",
+		art,
+		[]string{colors},
+		tcell.ColorWhite,
+		pos,
+		facing,
+		func(e *Entity, r *Renderer) {
+			if e.Tick%30 == 0 {
+				e.Move(e.Facing)
+			}
 
-func (f *Fish) Tick(r *Renderer) {
-	if f.cycle == 10 {
-		if RandOneIn(20) {
-			r.entities = append(r.entities, &Bubble{Pos: f.Pos})
-		}
-		f.cycle = 0
-		switch f.direction {
-		case Left:
-			f.Pos.X--
-		case Right:
-			f.Pos.X++
-		}
-	} else {
-		f.cycle++
-	}
-}
-
-func (f *Fish) Spawn(r *Renderer) {
-	_, lines := r.screen.Size()
-	height := rand.IntN(lines - r.seaLevel)
-	f.variation = rand.IntN(3)
-	f.direction = Direction(rand.IntN(2))
-	f.Pos = Pos{Y: r.seaLevel + height}
-	r.entities = append(r.entities, f)
-}
-
-func (f *Fish) Clone() Spawnable {
-	return &Fish{
-		variation: f.variation,
-		direction: f.direction,
-	}
-}
-
-// Ducks
-
-type Duck struct {
-	Pos       Pos
-	ticks     int
-	stage     int
-	direction Direction
-}
-
-func (f *Duck) DefaultColor() tcell.Color {
-	return tcell.ColorGray
-}
-
-func (d *Duck) Render(r *Renderer) (string, string) {
-	var art string
-	switch d.stage {
-	case 0:
-		art = `
-      _
-,____(')=
- \~~= ')`
-	case 1:
-		art = `
-      _
-,____(')<
- \~~= ')`
-	}
-
-	colors := `
-      w
-wwwwwwwwy
- wwwwdww`
-
-	if d.direction == Left {
-		return flipArt(art, colors)
-	}
-	return art, colors
-}
-
-func (d *Duck) GetPos() Pos {
-	return d.Pos
-}
-
-func (d *Duck) Tick(r *Renderer) {
-	if d.ticks > 60 {
-		if d.stage >= 1 {
-			d.stage = 0
-		} else {
-			d.stage = 1
-		}
-
-		d.ticks = 0
-		if d.direction == Left {
-			d.Pos.X--
-		} else {
-			d.Pos.X++
-		}
-	} else {
-		d.ticks++
-	}
+			if e.Tick%20 == 0 {
+				e.NextFrame()
+			}
+		},
+	)
 }
