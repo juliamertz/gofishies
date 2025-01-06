@@ -123,7 +123,7 @@ func eventHandler(r *Renderer, s *Spawner) {
 		// Process event
 		switch ev := ev.(type) {
 		case *tcell.EventResize:
-			r.screen.Sync()
+			r.entities = mkSea(r.screen.Size())
 		case *tcell.EventKey:
 			switch ev.Key() {
 			case tcell.KeyEscape | tcell.KeyCtrlC:
