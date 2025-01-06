@@ -6,12 +6,6 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-type Direction = int
-
-const (
-	Left  Direction = 0
-	Right Direction = 1
-)
 
 // Whale
 

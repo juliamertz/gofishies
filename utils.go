@@ -53,6 +53,7 @@ func reverseArt(s string) string {
 	return strings.Join(lines, "\n")
 }
 
+// reverse string and replace mapped ascii symbols
 func flipAsciiArt(art string) string {
 	// TODO: expand symbol map
 	symbolMap := map[rune]rune{
@@ -68,9 +69,7 @@ func flipAsciiArt(art string) string {
 
 	reversed := reverseArt(art)
 	lines := strings.Split(reversed, "\n")
-	for i, _ := range lines {
-		// lines[i] = reverseArt(line)
-
+	for i := range lines {
 		for j, ch := range lines[i] {
 			if value, exists := symbolMap[ch]; exists {
 				runes := []rune(lines[i])
@@ -80,4 +79,8 @@ func flipAsciiArt(art string) string {
 		}
 	}
 	return strings.Join(lines, "\n")
+}
+
+func flipArt(art string, colors string) (string, string) {
+	return flipAsciiArt(art), reverseArt(colors)
 }

@@ -26,7 +26,7 @@ func mkSea(width int, height int) []Entity {
 		&Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
 		&Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 4},
 		&Waves{Pos: Pos{X: 0, Y: 5}},
-		&Boat{variation: 0, Pos: Pos{X: width - 10, Y: 0}},
+		&Boat{variation: 1, Pos: Pos{X: width - 10, Y: 0}},
 	}
 }
 
@@ -54,14 +54,13 @@ func main() {
 	check(err)
 	err = screen.Init()
 	check(err)
-	width, height := screen.Size()
 
 	r := Renderer{
 		tickRate: 10,
 		seaLevel: 5,
 		paused:   false,
 		screen:   screen,
-		entities: mkSea(width, height),
+		entities: mkSea(screen.Size()),
 	}
 
 	s := Spawner{

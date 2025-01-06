@@ -142,12 +142,11 @@ func (f *Castle) Render(r *Renderer) (string, string) {
 	return art, colors
 }
 
-func (f *Castle) GetPos() Pos {
-	return f.Pos
+func (c *Castle) GetPos() Pos {
+	return c.Pos
 }
 
-func (f *Castle) Tick(r *Renderer) {
-}
+func (c *Castle) Tick(r *Renderer) {}
 
 // Boat
 
@@ -155,6 +154,7 @@ type Boat struct {
 	Pos       Pos
 	ticks     int
 	variation int
+	direction Direction
 }
 
 func (f *Boat) DefaultColor() tcell.Color {
@@ -168,15 +168,15 @@ func (b *Boat) Render(r *Renderer) (string, string) {
 	switch b.variation {
 	case 0:
 		art = `
-              __/___            
-        _____/______|           
-_______/_____\_______\_____     
-\              < < <       |`
+        ___\__                                                                                           
+       |______\_____                                                                                     
+ _____/_______/_____\_______                                                                             
+|       > > >              /`
 		colors = `
-              wwwwww            
-        wwwwwwwwwwwww           
-_______w_____w_______w_____     
-\dddddddddddddd<d<d<ddddddd|`
+        ___\__                                                                                           
+       |______\_____                                                                                     
+ _____/_______/_____\_______                                                                             
+|ddddddd>d>d>dddddddddddddd/`
 
 	case 1:
 		art = `
@@ -187,26 +187,33 @@ _______w_____w_______w_____
 _____|____|____|____\\\__
 \                   /`
 		colors = `
-   |    |    |                 
-   )_)  )_)  )_)              
-  )___))___))___)\            
- )____)____)_____)\\
+   w    w    w                 
+   www  www  www              
+  wwwwwwwwwwwwwww\            
+ wwwwwwwwwwwwwwwww\\
 _____|____|____|____\\\__
-\                   /`
+\ddddddddddddddddddd/`
 	}
 
+	if b.direction == Left {
+		return flipArt(art, colors)
+	}
 	return art, colors
 }
 
-func (f *Boat) GetPos() Pos {
-	return f.Pos
+func (b *Boat) GetPos() Pos {
+	return b.Pos
 }
 
-func (f *Boat) Tick(r *Renderer) {
-	if f.ticks > 20 {
-		f.ticks = 0
-		f.Pos.X--
+func (b *Boat) Tick(r *Renderer) {
+	if b.ticks > 20 {
+		b.ticks = 0
+		if b.direction == Left {
+			b.Pos.X--
+		} else {
+			b.Pos.X++
+		}
 	} else {
-		f.ticks++
+		b.ticks++
 	}
 }

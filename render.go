@@ -8,6 +8,13 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
+type Direction = int
+
+const (
+	Left  Direction = 0
+	Right Direction = 1
+)
+
 type Cell struct {
 	Content byte
 	Fg      tcell.Color
@@ -18,11 +25,29 @@ type Canvas struct {
 	cells [][]Cell
 }
 
-type Frames = []Canvas
-
 type Pos struct {
 	X int
 	Y int
+}
+
+type Entity interface {
+	Render(r *Renderer) (string, string)
+	Tick(*Renderer)
+	GetPos() Pos
+	DefaultColor() tcell.Color
+}
+
+type Renderer struct {
+	screen tcell.Screen
+	canvas Canvas
+
+	debug       bool
+	maxEntities uint32
+	paused      bool
+	seaLevel    int
+	tickRate    int
+
+	entities []Entity
 }
 
 func (c *Canvas) toString() string {
@@ -128,26 +153,6 @@ func ColorFromRune(r rune) tcell.Color {
 		// 	return tcell.ColorNone
 	}
 	return tcell.ColorNone
-}
-
-type Entity interface {
-	Render(r *Renderer) (string, string)
-	Tick(*Renderer)
-	GetPos() Pos
-	DefaultColor() tcell.Color
-}
-
-type Renderer struct {
-	screen tcell.Screen
-	canvas Canvas
-
-	debug       bool
-	maxEntities uint32
-	paused      bool
-	seaLevel    int
-	tickRate    int
-
-	entities []Entity
 }
 
 func (r *Renderer) IsOffscreen(e Entity) bool {
