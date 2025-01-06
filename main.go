@@ -131,8 +131,10 @@ func eventHandler(r *Renderer, s *Spawner) {
 				os.Exit(0)
 			}
 			switch ev.Rune() {
+			case 's':
+        s.spawnRandom()
 			case 'r':
-				s.spawnRandom()
+        r.entities = mkSea(r.screen.Size())
 			case 'q':
 				r.screen.Fini()
 				os.Exit(0)
