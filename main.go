@@ -43,7 +43,7 @@ type Spawner struct {
 func (s *Spawner) spawnRandom() {
 	i := RNG.IntN(len(s.pool))
 	if i > len(s.pool) {
-		panic("")
+		panic("random number is bigger than pool")
 	}
 
 	s.pool[i].Clone().Spawn(s.renderer)
