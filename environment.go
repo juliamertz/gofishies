@@ -92,7 +92,7 @@ func (b *Bubble) Tick(r *Renderer) {
 	if b.ticks%20 == 0 {
 		b.Pos.Y--
 	}
-	if b.ticks > 200 {
+	if b.ticks > 150 {
 		b.stage = 1
 	}
 	b.ticks++

@@ -26,8 +26,8 @@ func mkSea(width int, height int) []Entity {
 		&Seaweed{Pos: Pos{X: 10, Y: height - 5}, length: 5},
 		&Seaweed{Pos: Pos{X: 13, Y: height - 3}, length: 4},
 		&Waves{Pos: Pos{X: 0, Y: 5}},
-		&Boat{variation: 1, Pos: Pos{X: width - 30, Y: 0}},
 		&Duck{direction: Right, Pos: Pos{X: 5, Y: 2}},
+		&Boat{variation: 1, Pos: Pos{X: width - 30, Y: 0}},
 	}
 }
 
@@ -109,7 +109,7 @@ func drawCurrent(r *Renderer) {
 	}
 
 	r.screen.Show()
-	time.Sleep(time.Duration(1/r.tickRate) * time.Millisecond)
+	time.Sleep(time.Duration(10/r.tickRate) * time.Millisecond)
 }
 
 func join(lines []string) string {
@@ -120,16 +120,19 @@ func eventHandler(r *Renderer, s *Spawner) {
 	for {
 		ev := r.screen.PollEvent()
 
-		// Process event
 		switch ev := ev.(type) {
 		case *tcell.EventResize:
 			r.entities = mkSea(r.screen.Size())
 		case *tcell.EventKey:
-			switch ev.Key() {
-			case tcell.KeyEscape | tcell.KeyCtrlC:
+      if ev.Key() == tcell.Key(3) {
 				r.screen.Fini()
 				os.Exit(0)
-			}
+      }
+      // this doesn't work for some reason...
+			// switch ev.Key() {
+			// case tcell.KeyEscape | tcell.KeyCtrlC:
+			// }
+
 			switch ev.Rune() {
 			case 's':
 				s.spawnRandom()
@@ -140,17 +143,12 @@ func eventHandler(r *Renderer, s *Spawner) {
 				os.Exit(0)
 			case ' ':
 				r.paused = !r.paused
-			case 'j':
-				if r.tickRate < 10 {
-					r.tickRate += 1
-				} else {
-					r.tickRate += 5
-				}
 			case 'x':
 				r.debug = !r.debug
 				drawCurrent(r)
 				r.screen.Show()
-			case 'k':
+
+			case 'j':
 				if r.tickRate <= 1 {
 					continue
 				}
@@ -158,6 +156,12 @@ func eventHandler(r *Renderer, s *Spawner) {
 					r.tickRate -= 1
 				} else {
 					r.tickRate -= 5
+				}
+			case 'k':
+				if r.tickRate < 10 {
+					r.tickRate += 1
+				} else {
+					r.tickRate += 5
 				}
 			}
 		}

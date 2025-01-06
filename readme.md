@@ -9,3 +9,4 @@
 - `r` - Restart animation
 - `s` - Spawn random fish
 - `q` - Quit
+
