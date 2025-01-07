@@ -37,10 +37,10 @@ type Entity struct {
 	Id           string
 	pos          Pos
 	Facing       Direction
-	CurrentFrame int
 	Tick         int
-
 	defaultColor tcell.Color
+
+	currentFrame int
 	frames       *[]Frame
 
 	width  int
@@ -59,12 +59,13 @@ func (e *Entity) Move(dir Direction) {
 }
 
 func (e *Entity) NextFrame() {
-	e.CurrentFrame++
-	if e.CurrentFrame >= len(*e.frames) {
-		e.CurrentFrame = 0
+	e.currentFrame++
+	if e.currentFrame >= len(*e.frames) {
+		e.currentFrame = 0
 	}
 }
 
+// Guess where the bubble should spawn
 func (e *Entity) LikelyBubblePos() Pos {
 	x := e.pos.X
 	if e.Facing == Right {
@@ -178,7 +179,7 @@ func (r *Renderer) spawnRandomEntity() {
 		x = -5
 	}
 
-	f := Fish(RNG.IntN(7), facing, Pos{
+	f := Fish(RNG.IntN(7), facing, RandColor(), Pos{
 		Y: r.seaLevel + RNG.IntN(r.frame.height()-r.seaLevel),
 		X: x,
 	})
@@ -300,10 +301,10 @@ func (r *Renderer) Draw() error {
 	// render entities
 	for _, e := range r.entities {
 		// TODO: figure out why this is needed
-		if e.CurrentFrame > len(*e.frames)-1 {
+		if e.currentFrame > len(*e.frames)-1 {
 			continue
 		}
-		r.frame.MergeAt((*e.frames)[e.CurrentFrame], e.pos)
+		r.frame.MergeAt((*e.frames)[e.currentFrame], e.pos)
 	}
 
 	// print each cell of final canvas

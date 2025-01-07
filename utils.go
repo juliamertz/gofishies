@@ -129,3 +129,42 @@ func assertEq(a any, b any, msg string) {
 	return tcell.ColorNone
 }
 
+
+func RandColor() tcell.Color {
+  switch RNG.IntN(16) {
+  case 1:
+   return tcell.ColorBlack
+  case 2:
+    return tcell.ColorMaroon
+  case 3:
+    return tcell.ColorGreen
+  case 4:
+    return tcell.ColorOlive
+  case 5:
+    return tcell.ColorNavy
+  case 6:
+    return tcell.ColorPurple
+  case 7:
+    return tcell.ColorTeal
+  case 8:
+    return tcell.ColorSilver
+  case 9:
+    return tcell.ColorGray
+  case 10:
+    return tcell.ColorRed
+  case 11:
+    return tcell.ColorLime
+  case 12:
+    return tcell.ColorYellow
+  case 13:
+    return tcell.ColorBlue
+  case 14:
+    return tcell.ColorFuchsia
+  case 15:
+    return tcell.ColorAqua
+  case 16:
+    return tcell.ColorWhite
+  }
+  
+  return tcell.ColorNone // unreachable
+}

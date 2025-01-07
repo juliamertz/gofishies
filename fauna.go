@@ -4,7 +4,7 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-func Fish(variation int, facing Direction, pos Pos) Entity {
+func Fish(variation int, facing Direction, color tcell.Color, pos Pos) Entity {
 	var art string
 	var colors string
 
@@ -102,7 +102,7 @@ y
 		"fish",
 		[]string{art},
 		[]string{colors},
-		tcell.ColorOrange,
+    color,
 		pos,
 		facing,
 		func(e *Entity, r *Renderer) {

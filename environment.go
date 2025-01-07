@@ -46,16 +46,17 @@ func Bubble(pos Pos) Entity {
 		Left,
 		func(e *Entity, r *Renderer) {
       if e.pos.Y < r.seaLevel + 3 {
-        r.KillEntity(*e)
+        // FIX: Looks like this call is problematic for spawned entities?
+        // r.KillEntity(*e)
       }
 
 			if e.Tick%20 == 0 {
 				e.pos.Y--
 			}
 			if e.Tick > 75 {
-				e.CurrentFrame = 1
+				e.currentFrame = 1
 			} else if e.Tick > 150 {
-				e.CurrentFrame = 2
+				e.currentFrame = 2
 			}
 		},
 	)

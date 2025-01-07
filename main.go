@@ -21,10 +21,12 @@ func mkSea(width int, height int) []Entity {
 		Waves(Pos{Y: 5}, width),
 		Seaweed(7, Pos{X: 2, Y: height - 7}),
 		Castle(Left, Pos{X: width - 35, Y: height - 14}),
-		Fish(1, Right, Pos{X: 2, Y: 15}),
-		Fish(2, Right, Pos{X: 40, Y: 24}),
+		Fish(1, Right, tcell.ColorBlue, Pos{X: 2, Y: 15}),
+		Fish(2, Right, tcell.ColorRed,Pos{X: 40, Y: 24}),
 		Boat(1, Right, Pos{X: 10, Y: 0}),
 		Duck(Right, Pos{X: 5, Y: 5}),
+		Duck(Right, Pos{X: 15, Y: 5}),
+		Duck(Right, Pos{X: 25, Y: 5}),
 		Whale(Right, Pos{X: 5, Y: 15}),
 	}
 }
