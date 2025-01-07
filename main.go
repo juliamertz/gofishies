@@ -18,15 +18,15 @@ func check(err error) {
 
 func mkSea(width int, height int) []Entity {
 	return []Entity{
-			Waves(Pos{Y: 5}, width),
-			Seaweed(7, Pos{X: 2, Y: height-7}),
-			Castle(Left, Pos{X: width - 35, Y: height-14}),
-			Fish(1, Right, Pos{X: 2, Y: 5}),
-			Fish(2, Right, Pos{X: 40, Y: 24}),
-			Boat(0, Right, Pos{X: 10, Y: 10}),
-			Duck(Right, Pos{X: 5, Y: 2}),
-			Whale(Right, Pos{X: 5, Y: 15}),
-		}
+		Waves(Pos{Y: 5}, width),
+		Seaweed(7, Pos{X: 2, Y: height - 7}),
+		Castle(Left, Pos{X: width - 35, Y: height - 14}),
+		Fish(1, Right, Pos{X: 2, Y: 15}),
+		Fish(2, Right, Pos{X: 40, Y: 24}),
+		Boat(1, Right, Pos{X: 10, Y: 0}),
+		Duck(Right, Pos{X: 5, Y: 5}),
+		Whale(Right, Pos{X: 5, Y: 15}),
+	}
 }
 
 type EntityCap struct {
@@ -41,11 +41,11 @@ func main() {
 	err = screen.Init()
 	check(err)
 	r := Renderer{
-		tickRate: 1,
+		tickRate: 2,
 		seaLevel: 5,
 		paused:   false,
 		screen:   screen,
-    entities: mkSea(screen.Size()),
+		entities: mkSea(screen.Size()),
 	}
 
 	defer r.screen.Fini()
@@ -103,16 +103,18 @@ func eventHandler(r *Renderer) {
 		case *tcell.EventResize:
 			r.entities = mkSea(r.screen.Size())
 		case *tcell.EventKey:
+      // FIX: this doesn't work for some reason...
+			// switch ev.Key() {
+			// case tcell.KeyEscape | tcell.KeyCtrlC:
+			// }
 			if ev.Key() == tcell.Key(3) {
 				r.screen.Fini()
 				os.Exit(0)
 			}
-			// this doesn't work for some reason...
-			// switch ev.Key() {
-			// case tcell.KeyEscape | tcell.KeyCtrlC:
-			// }
 
 			switch ev.Rune() {
+			case 's':
+				r.spawnRandomEntity()
 			case 'r':
 				r.entities = mkSea(r.screen.Size())
 			case 'q':
@@ -124,7 +126,6 @@ func eventHandler(r *Renderer) {
 				r.debug = !r.debug
 				drawCurrent(r)
 				r.screen.Show()
-
 			case 'j':
 				if r.tickRate <= 1 {
 					continue

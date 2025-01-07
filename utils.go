@@ -44,6 +44,17 @@ func reverseString(s string) string {
 	return string(runes)
 }
 
+// remove leading/trailing newlines from art string
+func trimArt(val string) string {
+  var buff []string
+  for _, line := range strings.Split(val, "\n") {
+    if strings.TrimSpace(line) != "" {
+      buff = append(buff, line) 
+    }
+  }
+  return join(buff)
+}
+
 // reverse and padd whitespace
 func reverseArt(s string) string {
 	width := findArtWidth(s)

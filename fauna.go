@@ -62,7 +62,7 @@ y
 			if e.Tick%10 == 0 {
 				e.Move(e.Facing)
 				if RandOneIn(30) {
-					r.entities = append(r.entities, Bubble(e.Pos))
+					r.entities = append(r.entities, Bubble(e.LikelyBubblePos()))
 				}
 			}
 		},
@@ -102,8 +102,8 @@ func Whale(facing Direction, pos Pos) Entity {
 				e.Move(e.Facing)
 			}
 
-			if RandOneIn(100) {
-				r.entities = append(r.entities, Bubble(e.Pos))
+			if RandOneIn(200) {
+				r.entities = append(r.entities, Bubble(e.LikelyBubblePos()))
 			}
 		},
 	)

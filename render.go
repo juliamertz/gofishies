@@ -25,6 +25,9 @@ type Frame struct {
 	cells [][]Cell
 }
 
+func (f *Frame) width() int  { return len(f.cells[0]) }
+func (f *Frame) height() int { return len(f.cells) }
+
 type Pos struct {
 	X int
 	Y int
@@ -32,13 +35,13 @@ type Pos struct {
 
 type Entity struct {
 	Id           string
-	Pos          Pos
+	pos          Pos
 	Facing       Direction
 	CurrentFrame int
 	Tick         int
 
 	defaultColor tcell.Color
-	frames       []Frame
+	frames       *[]Frame
 
 	width  int
 	height int
@@ -49,17 +52,26 @@ type Entity struct {
 func (e *Entity) Move(dir Direction) {
 	switch dir {
 	case Left:
-		e.Pos.X--
+		e.pos.X--
 	case Right:
-		e.Pos.X++
+		e.pos.X++
 	}
 }
 
 func (e *Entity) NextFrame() {
 	e.CurrentFrame++
-	if e.CurrentFrame >= len(e.frames) {
+	if e.CurrentFrame >= len(*e.frames) {
 		e.CurrentFrame = 0
 	}
+}
+
+func (e *Entity) LikelyBubblePos() Pos {
+	x := e.pos.X
+	if e.Facing == Right {
+		x += e.width
+	}
+
+	return Pos{X: x, Y: e.pos.Y + (e.height / 2)}
 }
 
 func generateFrame(art string, colors string, defaultColor tcell.Color) Frame {
@@ -120,8 +132,8 @@ func createEntity(
 
 		// assume all art is left facing
 		if facing == Right {
-			frame = mirrorAsciiArt(frame)
-			cMap = reverseArt(cMap)
+			frame = mirrorAsciiArt(trimArt(frame))
+			cMap = reverseArt(trimArt(cMap))
 		}
 
 		frames = append(frames, generateFrame(frame, cMap, defaultColor))
@@ -129,10 +141,10 @@ func createEntity(
 
 	return Entity{
 		Id:           id,
-		Pos:          pos,
+		pos:          pos,
 		Facing:       facing,
 		defaultColor: defaultColor,
-		frames:       frames,
+		frames:       &frames,
 		update:       update,
 
 		// assume all frames are of same height/width
@@ -141,17 +153,40 @@ func createEntity(
 	}
 }
 
+// TODO: rename to engine or something
 type Renderer struct {
 	screen tcell.Screen
 	frame  Frame
 
-	debug       bool
-	maxEntities uint32
-	paused      bool
-	seaLevel    int
-	tickRate    int
+	debug      bool
+	entityCaps *EntityCap
+	paused     bool
+	seaLevel   int
+	tickRate   int
 
 	entities []Entity
+}
+
+func (r *Renderer) spawnRandomEntity() {
+	// assume small fish for now
+	facing := Direction(RNG.IntN(2))
+	var x int
+	switch facing {
+	case Left:
+		x = r.frame.width() - 5
+	case Right:
+		x = -5
+	}
+
+	f := Fish(RNG.IntN(3), facing, Pos{
+		Y: r.seaLevel + RNG.IntN(r.frame.height()-r.seaLevel),
+		X: x,
+	})
+
+	f.Id = fmt.Sprintf("%s_%d", f.Id, len(r.entities))
+  r.SpawnEntity(f)
+
+	// r.entities = append(r.entities, f)
 }
 
 func (c *Frame) toString() string {
@@ -206,11 +241,11 @@ func (c *Frame) MergeAt(art Frame, pos Pos) {
 func (r *Renderer) IsOffscreen(e Entity) bool {
 	cols, lines := r.screen.Size()
 
-	if e.Pos.X >= cols || e.Pos.X+e.width <= 0 {
+	if e.pos.X >= cols || e.pos.X+e.width <= 0 {
 		return true
 	}
 
-	if e.Pos.Y > lines || e.Pos.Y+e.height <= 0 {
+	if e.pos.Y > lines || e.pos.Y+e.height <= 0 {
 		return true
 	}
 
@@ -220,7 +255,7 @@ func (r *Renderer) IsOffscreen(e Entity) bool {
 func (r *Renderer) KillEntity(v Entity) {
 	for i, e := range r.entities {
 		// TODO: find better way to determine uniqueness
-		if e.Id == v.Id && e.Pos == v.Pos {
+		if e.Id == v.Id && e.pos == v.pos {
 			r.entities = slices.Delete(r.entities, i, i+1)
 			break
 		}
@@ -232,12 +267,18 @@ func (r *Renderer) Tick() {
 		// TODO: figure out why it doesn't update if `e` is passed instead if indexing
 		r.entities[i].Tick++
 		if r.IsOffscreen(e) {
+			r.entities = slices.Delete(r.entities, i, i+1)
 			r.KillEntity(e)
 			continue
 		}
 
 		e.update(&r.entities[i], r)
 	}
+}
+
+func (r *Renderer) SpawnEntity(e Entity) {
+	e.Id = fmt.Sprintf("%d", RNG.IntN(1000000))
+	r.entities = append(r.entities, e)
 }
 
 func (r *Renderer) DrawText(content string, pos Pos) {
@@ -258,10 +299,10 @@ func (r *Renderer) Draw() error {
 	// render entities
 	for _, e := range r.entities {
 		// TODO: figure out why this is needed
-		if e.CurrentFrame > len(e.frames)-1 {
+		if e.CurrentFrame > len(*e.frames)-1 {
 			continue
 		}
-		r.frame.MergeAt(e.frames[e.CurrentFrame], e.Pos)
+		r.frame.MergeAt((*e.frames)[e.CurrentFrame], e.pos)
 	}
 
 	// print each cell of final canvas

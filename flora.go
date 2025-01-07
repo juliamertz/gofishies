@@ -11,10 +11,11 @@ func Seaweed(length int, pos Pos) Entity {
 	for i := 0; i < length; i++ {
 		if i%2 == 0 {
 			parts = append(parts, "( ")
+			colorParts = append(colorParts, "g ")
 		} else {
 			parts = append(parts, " )")
+			colorParts = append(colorParts, " g")
 		}
-		colorParts = append(colorParts, "gg")
 	}
 
 	art := []string{join(parts), mirrorAsciiArt(join(parts))}

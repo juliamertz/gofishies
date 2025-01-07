@@ -38,19 +38,19 @@ func Waves(pos Pos, width int) Entity {
 
 func Bubble(pos Pos) Entity {
 	return createEntity(
-		"boat",
+		"bubble",
 		[]string{".", "o", "O"},
 		[]string{"b"},
 		tcell.ColorGray,
 		pos,
 		Left,
 		func(e *Entity, r *Renderer) {
-      if e.Pos.Y < r.seaLevel + 3 {
+      if e.pos.Y < r.seaLevel + 3 {
         r.KillEntity(*e)
       }
 
 			if e.Tick%20 == 0 {
-				e.Pos.Y--
+				e.pos.Y--
 			}
 			if e.Tick > 75 {
 				e.CurrentFrame = 1
@@ -129,12 +129,12 @@ _______/_____\_______\_____
 __///____|____|____|_____
     \                   /`
 		colors = `
-           w    w    w
+           y    y    y
          www  www  www
-       /wwwwwwwwwwwwwww
-     //wwwwwwwwwwwwwwwww
-__///____|____|____|_____
-    \ddddddddddddddddddd/`
+       wwwwwwwwwwwwwwww
+     wwwwwwwwwwwwwwwwwww
+yywwwyyyyyyyyyyyyyyyyyyyy
+    ydddddddddddddddddddy`
 	}
 
 	return createEntity(
