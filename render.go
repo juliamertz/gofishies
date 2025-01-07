@@ -178,13 +178,13 @@ func (r *Renderer) spawnRandomEntity() {
 		x = -5
 	}
 
-	f := Fish(RNG.IntN(3), facing, Pos{
+	f := Fish(RNG.IntN(7), facing, Pos{
 		Y: r.seaLevel + RNG.IntN(r.frame.height()-r.seaLevel),
 		X: x,
 	})
 
 	f.Id = fmt.Sprintf("%s_%d", f.Id, len(r.entities))
-  r.SpawnEntity(f)
+	r.SpawnEntity(f)
 
 	// r.entities = append(r.entities, f)
 }
@@ -255,6 +255,7 @@ func (r *Renderer) IsOffscreen(e Entity) bool {
 func (r *Renderer) KillEntity(v Entity) {
 	for i, e := range r.entities {
 		// TODO: find better way to determine uniqueness
+    // this also just straight up deletes the wrong entities sometimes?!?!
 		if e.Id == v.Id && e.pos == v.pos {
 			r.entities = slices.Delete(r.entities, i, i+1)
 			break
@@ -277,7 +278,7 @@ func (r *Renderer) Tick() {
 }
 
 func (r *Renderer) SpawnEntity(e Entity) {
-	e.Id = fmt.Sprintf("%d", RNG.IntN(1000000))
+	e.Id = fmt.Sprintf("%s-%d", e.Id, RNG.IntN(1000000))
 	r.entities = append(r.entities, e)
 }
 

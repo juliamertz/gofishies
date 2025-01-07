@@ -48,7 +48,54 @@ y
 <d'dd)rgydd=<
  \d\dddddd/  \
   ''\'"'"'`
-
+	case 3:
+		art = `
+    /
+ /--\ /
+<o)  =<
+ \__/ \
+  \
+`
+		colors = `
+    /
+ /--\ /
+<wbdd=<
+ \__/ \
+  \
+  `
+	case 4:
+		art = join([]string{
+			"  ,/..   ",
+			"<')   `=<",
+			" ``\\``   ",
+		})
+		colors = join([]string{
+			"  yyrr   ",
+			"yw)ddd`=<",
+			" yyyyy   ",
+		})
+	case 5:
+		art = join([]string{
+" /,  ",
+"<')=<",
+" \\`  ",
+		})
+		colors = join([]string{
+" y,  ",
+"<w)=<",
+" y`  ",
+		})
+  case 6:
+    art = `
+ __
+/o \/
+\__/\
+    `
+    colors = `
+ __
+/w \/
+\__/\
+    `
 	}
 
 	return createEntity(
@@ -62,7 +109,7 @@ y
 			if e.Tick%10 == 0 {
 				e.Move(e.Facing)
 				if RandOneIn(30) {
-					r.entities = append(r.entities, Bubble(e.LikelyBubblePos()))
+					r.SpawnEntity(Bubble(e.LikelyBubblePos()))
 				}
 			}
 		},
@@ -103,7 +150,7 @@ func Whale(facing Direction, pos Pos) Entity {
 			}
 
 			if RandOneIn(200) {
-				r.entities = append(r.entities, Bubble(e.LikelyBubblePos()))
+				r.SpawnEntity(Bubble(e.LikelyBubblePos()))
 			}
 		},
 	)
