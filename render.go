@@ -42,6 +42,7 @@ type Entity struct {
 
 	currentFrame int
 	frames       *[]Frame
+	shouldKill   bool
 
 	width  int
 	height int
@@ -253,24 +254,16 @@ func (r *Renderer) IsOffscreen(e Entity) bool {
 	return false
 }
 
-func (r *Renderer) KillEntity(v Entity) {
-	for i, e := range r.entities {
-		// TODO: find better way to determine uniqueness
-    // this also just straight up deletes the wrong entities sometimes?!?!
-		if e.Id == v.Id && e.pos == v.pos {
-			r.entities = slices.Delete(r.entities, i, i+1)
-			break
-		}
-	}
+func (r *Renderer) KillEntity(idx int) {
+	r.entities = slices.Delete(r.entities, idx, idx+1)
 }
 
 func (r *Renderer) Tick() {
 	for i, e := range slices.Backward(r.entities) {
-		// TODO: figure out why it doesn't update if `e` is passed instead if indexing
+		// TODO: figure out why it doesn't update if `e` is passed instead if indexing into r.entities
 		r.entities[i].Tick++
-		if r.IsOffscreen(e) {
-			r.entities = slices.Delete(r.entities, i, i+1)
-			r.KillEntity(e)
+		if r.IsOffscreen(e) || e.shouldKill {
+      r.KillEntity(i)
 			continue
 		}
 
