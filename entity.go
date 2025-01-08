@@ -99,3 +99,42 @@ func (e *Entity) LikelyBubblePos() Pos {
 
 	return Pos{X: x, Y: e.pos.Y + (e.height / 2)}
 }
+
+func (entity *Entity) GetCollisions(r *Renderer) []Entity {
+  var buff []Entity
+  for _, e := range r.entities {
+    if e.Id == entity.Id {
+      continue
+    }
+    b1 := entity.BoundingBox()
+    b2 := e.BoundingBox()
+    if checkCollision(b1, b2) {
+      buff = append(buff, e)
+    }
+  }
+  return buff
+}
+
+type BoundingBox struct {
+	xMin, yMin int
+	xMax, yMax int
+}
+
+func checkCollision(a, b BoundingBox) bool {
+	return a.xMin < b.xMax && a.xMax > b.xMin && a.yMin < b.yMax && a.yMax > b.yMin
+}
+
+// get corner positions of entity relative to it's parent frame
+// left-top, right-top, left-bottom, right-bottom
+func (e *Entity) BoundingBox() BoundingBox {
+	frame := (*e.frames)[e.currentFrame]
+	w := frame.width()
+	h := frame.height()
+
+  return BoundingBox{
+    xMin: e.pos.X,
+    xMax: e.pos.X + w,
+    yMin: e.pos.Y,
+    yMax: e.pos.Y + h,
+  }
+}

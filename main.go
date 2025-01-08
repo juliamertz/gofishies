@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"internal/itoa"
 	"os"
 	"slices"
 	"strings"
@@ -21,8 +22,8 @@ func mkSea(width int, height int) []Entity {
 	entities := []Entity{
 		Waves(Pos{Y: 5}, width),
 		Castle(Left, Pos{X: width - 35, Y: height - 14}),
-		Fish(1, Right, tcell.ColorBlue, Pos{X: 2, Y: 15}),
-		Fish(2, Right, tcell.ColorYellow, Pos{X: 40, Y: 24}),
+		// Fish(1, Right, tcell.ColorBlue, Pos{X: 2, Y: 15}),
+		// Fish(2, Right, tcell.ColorYellow, Pos{X: 40, Y: 24}),
 		Boat(1, Right, Pos{X: 10, Y: 0}),
 		Duck(Right, Pos{X: 5, Y: 5}),
 		Duck(Right, Pos{X: 15, Y: 5}),
@@ -54,30 +55,69 @@ func mkSea(width int, height int) []Entity {
 	return append(plants, entities...)
 }
 
+type EntityKind int
+
+const (
+	SmallFish EntityKind = iota
+	LargeFish
+	Vehicle
+)
+
 type EntityCaps struct {
 	smallFish int
 	largeFish int
-	boat      int
+	vehicle   int
+}
+
+// get random entity kind that we can spawn
+func (c *EntityCaps) GetKind() EntityKind {
+  // TODO: better way to prevent too many cycles
+	for i := 0; i < 9; i++ {
+		kind := EntityKind(RNG.IntN(2))
+		switch kind {
+		case SmallFish:
+			if c.smallFish >= 10 {
+				continue
+			}
+		case LargeFish:
+			if c.largeFish >= 2 {
+				continue
+			}
+		case Vehicle:
+			if c.vehicle >= 1 {
+				continue
+			}
+
+		}
+		return kind
+	}
+
+	// if c.smallFish < 10 {
+	//   return SmallFish
+	// }
+	//
 }
 
 type Spawner struct {
-  caps EntityCaps
-  renderer *Renderer
+	caps     EntityCaps
+	renderer *Renderer
 }
 
 func (s *Spawner) spawnRandomEntity() {
+	sWidth, sHeight := s.renderer.screen.Size()
+
 	// assume small fish for now
 	facing := Direction(RNG.IntN(2))
 	var x int
 	switch facing {
 	case Left:
-		x = s.renderer.frame.width() - 5
+		x = sWidth - 5
 	case Right:
 		x = -5
 	}
 
 	f := Fish(RNG.IntN(6), facing, RandColor(), Pos{
-		Y: s.renderer.seaLevel + RNG.IntN(s.renderer.frame.height()-s.renderer.seaLevel),
+		Y: s.renderer.seaLevel*2 + RNG.IntN(sHeight-s.renderer.seaLevel),
 		X: x,
 	})
 
@@ -86,7 +126,7 @@ func (s *Spawner) spawnRandomEntity() {
 }
 
 func (s *Spawner) spawnEntity(e Entity) {
-  s.renderer.entities = append(s.renderer.entities, e)  
+	s.renderer.entities = append(s.renderer.entities, e)
 }
 
 func main() {
@@ -102,10 +142,10 @@ func main() {
 		entities: mkSea(screen.Size()),
 	}
 
-  s := Spawner {
-    renderer: &r,
-    caps: EntityCaps{},
-  }
+	s := Spawner{
+		renderer: &r,
+		caps:     EntityCaps{},
+	}
 
 	defer r.screen.Fini()
 	go eventHandler(&r, &s)
@@ -114,6 +154,11 @@ func main() {
 		if r.paused {
 			time.Sleep(time.Duration(r.tickRate) * time.Millisecond)
 			continue
+		}
+
+		// TODO:
+		if RandOneIn(100) {
+			s.spawnRandomEntity()
 		}
 
 		drawCurrent(&r)
@@ -137,7 +182,7 @@ func drawCurrent(r *Renderer) {
 
 	if r.debug {
 		elapsed := time.Now().Sub(start)
-    fps := 1 / elapsed.Seconds()
+		fps := 1 / elapsed.Seconds()
 		ser, err := json.MarshalIndent(r.entities, "", "  ")
 		check(err)
 		lines := []string{

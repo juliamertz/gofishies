@@ -45,9 +45,17 @@ func Bubble(pos Pos) Entity {
 		pos,
 		Left,
 		func(e *Entity, r *Renderer) {
+      // kill bubble if it approaches the sealine
 			if e.pos.Y < r.seaLevel+3 {
         e.shouldKill = true
+        return
 			}
+      // kill bubble in case it collides with another entity
+      collisions := e.GetCollisions(r)
+      // also make sure the bubble isn't killed on spawn with a grace period
+      if len(collisions) > 0 && e.Tick > 100 {
+        e.shouldKill = true
+      }
 
 			if e.Tick%20 == 0 {
 				e.pos.Y--
