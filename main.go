@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -17,18 +18,40 @@ func check(err error) {
 }
 
 func mkSea(width int, height int) []Entity {
-	return []Entity{
+	entities := []Entity{
 		Waves(Pos{Y: 5}, width),
-		Seaweed(7, Pos{X: 2, Y: height - 7}),
 		Castle(Left, Pos{X: width - 35, Y: height - 14}),
 		Fish(1, Right, tcell.ColorBlue, Pos{X: 2, Y: 15}),
-		Fish(2, Right, tcell.ColorRed,Pos{X: 40, Y: 24}),
+		Fish(2, Right, tcell.ColorYellow, Pos{X: 40, Y: 24}),
 		Boat(1, Right, Pos{X: 10, Y: 0}),
 		Duck(Right, Pos{X: 5, Y: 5}),
 		Duck(Right, Pos{X: 15, Y: 5}),
 		Duck(Right, Pos{X: 25, Y: 5}),
 		Whale(Right, Pos{X: 5, Y: 15}),
 	}
+
+	// spawn some seaweed
+	maxInitialHeight := 8
+	plantsAmount := width / 10
+	var plants []Entity
+	for i := 0; i < plantsAmount; i++ {
+		x := RNG.IntN(width)
+	inner:
+		for {
+			if slices.ContainsFunc(plants, func(n Entity) bool {
+				return n.pos.X == x
+			}) {
+				x = RNG.IntN(width)
+			} else {
+				break inner
+			}
+		}
+		pHeight := RNG.IntN(maxInitialHeight)
+		pos := Pos{X: x, Y: height - pHeight}
+		plants = append(plants, Seaweed(pHeight, pos))
+	}
+
+	return append(plants, entities...)
 }
 
 type EntityCap struct {
@@ -68,6 +91,8 @@ func drawCurrent(r *Renderer) {
 	// update all entities
 	r.screen.Clear()
 
+	start := time.Now()
+
 	// create empty canvas
 	width, height := r.screen.Size()
 	r.frame = makeFrame(width, height)
@@ -76,12 +101,15 @@ func drawCurrent(r *Renderer) {
 	err := r.Draw()
 	check(err)
 
+	elapsed := time.Now().Sub(start)
+
 	if r.debug {
 		ser, err := json.MarshalIndent(r.entities, "", "  ")
 		check(err)
 		lines := []string{
 			fmt.Sprintf("entities: %d", len(r.entities)),
 			fmt.Sprintf("tickRate: %d", r.tickRate),
+			fmt.Sprintf("lastRender: %v", elapsed),
 			fmt.Sprintf("entities: %s", string(ser)),
 		}
 		for i, line := range lines {
@@ -105,7 +133,7 @@ func eventHandler(r *Renderer) {
 		case *tcell.EventResize:
 			r.entities = mkSea(r.screen.Size())
 		case *tcell.EventKey:
-      // FIX: this doesn't work for some reason...
+			// FIX: this doesn't work for some reason...
 			// switch ev.Key() {
 			// case tcell.KeyEscape | tcell.KeyCtrlC:
 			// }
