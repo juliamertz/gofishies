@@ -33,49 +33,6 @@ type Pos struct {
 	Y int
 }
 
-type Entity struct {
-	Id           string
-	pos          Pos
-	Facing       Direction
-	Tick         int
-	defaultColor tcell.Color
-
-	currentFrame int
-	frames       *[]Frame
-	shouldKill   bool
-
-	width  int
-	height int
-
-	update func(*Entity, *Renderer)
-}
-
-func (e *Entity) Move(dir Direction) {
-	switch dir {
-	case Left:
-		e.pos.X--
-	case Right:
-		e.pos.X++
-	}
-}
-
-func (e *Entity) NextFrame() {
-	e.currentFrame++
-	if e.currentFrame >= len(*e.frames) {
-		e.currentFrame = 0
-	}
-}
-
-// Guess where the bubble should spawn
-func (e *Entity) LikelyBubblePos() Pos {
-	x := e.pos.X
-	if e.Facing == Right {
-		x += e.width
-	}
-
-	return Pos{X: x, Y: e.pos.Y + (e.height / 2)}
-}
-
 func generateFrame(art string, colors string, defaultColor tcell.Color) Frame {
 	lines := strings.Split(art, "\n")
 	colorLines := strings.Split(colors, "\n")
@@ -112,49 +69,6 @@ func generateFrame(art string, colors string, defaultColor tcell.Color) Frame {
 	return buff
 }
 
-func createEntity(
-	id string,
-	art []string,
-	colorMap []string,
-	defaultColor tcell.Color,
-	pos Pos,
-	facing Direction,
-	update func(*Entity, *Renderer),
-) Entity {
-	var frames []Frame
-	// generate frames for entity
-	for i, frame := range art {
-		var cMap string
-		if i < len(colorMap) {
-			cMap = colorMap[i]
-		} else {
-			// fallback to first entry if frame doesn't have corresponding color map
-			cMap = colorMap[0]
-		}
-
-		// assume all art is left facing
-		if facing == Right {
-			frame = mirrorAsciiArt(trimArt(frame))
-			cMap = reverseArt(trimArt(cMap))
-		}
-
-		frames = append(frames, generateFrame(frame, cMap, defaultColor))
-	}
-
-	return Entity{
-		Id:           id,
-		pos:          pos,
-		Facing:       facing,
-		defaultColor: defaultColor,
-		frames:       &frames,
-		update:       update,
-
-		// assume all frames are of same height/width
-		height: len(frames[0].cells),
-		width:  len(frames[0].cells[0]),
-	}
-}
-
 // TODO: rename to engine or something
 type Renderer struct {
 	screen tcell.Screen
@@ -167,6 +81,66 @@ type Renderer struct {
 	tickRate   int
 
 	entities []Entity
+}
+
+func (r *Renderer) KillEntity(idx int) {
+	r.entities = slices.Delete(r.entities, idx, idx+1)
+}
+
+func (r *Renderer) Tick() {
+	for i, e := range slices.Backward(r.entities) {
+		// TODO: figure out why it doesn't update if `e` is passed instead if indexing into r.entities
+		r.entities[i].Tick++
+		if e.IsOffscreen(r.screen.Size()) || e.shouldKill {
+			r.KillEntity(i)
+			continue
+		}
+
+		e.update(&r.entities[i], r)
+	}
+}
+
+func (r *Renderer) SpawnEntity(e Entity) {
+	e.Id = fmt.Sprintf("%s-%d", e.Id, RNG.IntN(1000000))
+	r.entities = append(r.entities, e)
+}
+
+func (r *Renderer) DrawText(content string, pos Pos) {
+	lines := strings.Split(content, "\n")
+	for i, line := range lines {
+		for j, ch := range line {
+			style := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
+			r.screen.SetContent(pos.X+j, pos.Y+i, ch, nil, style)
+		}
+	}
+}
+
+func (r *Renderer) Draw() error {
+	if r == nil {
+		return fmt.Errorf("Draw was called but the renderer has no screen set")
+	}
+
+	// render entities
+	for _, e := range r.entities {
+		// TODO: figure out why this is needed
+		if e.currentFrame > len(*e.frames)-1 {
+			continue
+		}
+		r.frame.MergeAt((*e.frames)[e.currentFrame], e.pos)
+	}
+
+	// print each cell of final canvas
+	for y, line := range r.frame.cells {
+		for x, cell := range line {
+			if isWhitespace(cell.Content) {
+				continue
+			}
+			style := tcell.StyleDefault.Foreground(cell.Fg)
+			r.screen.SetContent(x, y, rune(cell.Content), nil, style)
+		}
+	}
+
+	return nil
 }
 
 func (r *Renderer) spawnRandomEntity() {
@@ -238,78 +212,4 @@ func (c *Frame) MergeAt(art Frame, pos Pos) {
 			c.cells[y+i][x+j] = cell
 		}
 	}
-}
-
-func (r *Renderer) IsOffscreen(e Entity) bool {
-	cols, lines := r.screen.Size()
-
-	if e.pos.X >= cols || e.pos.X+e.width <= 0 {
-		return true
-	}
-
-	if e.pos.Y > lines || e.pos.Y+e.height <= 0 {
-		return true
-	}
-
-	return false
-}
-
-func (r *Renderer) KillEntity(idx int) {
-	r.entities = slices.Delete(r.entities, idx, idx+1)
-}
-
-func (r *Renderer) Tick() {
-	for i, e := range slices.Backward(r.entities) {
-		// TODO: figure out why it doesn't update if `e` is passed instead if indexing into r.entities
-		r.entities[i].Tick++
-		if r.IsOffscreen(e) || e.shouldKill {
-      r.KillEntity(i)
-			continue
-		}
-
-		e.update(&r.entities[i], r)
-	}
-}
-
-func (r *Renderer) SpawnEntity(e Entity) {
-	e.Id = fmt.Sprintf("%s-%d", e.Id, RNG.IntN(1000000))
-	r.entities = append(r.entities, e)
-}
-
-func (r *Renderer) DrawText(content string, pos Pos) {
-	lines := strings.Split(content, "\n")
-	for i, line := range lines {
-		for j, ch := range line {
-			style := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
-			r.screen.SetContent(pos.X+j, pos.Y+i, ch, nil, style)
-		}
-	}
-}
-
-func (r *Renderer) Draw() error {
-	if r == nil {
-		return fmt.Errorf("Draw was called but the renderer has no screen set")
-	}
-
-	// render entities
-	for _, e := range r.entities {
-		// TODO: figure out why this is needed
-		if e.currentFrame > len(*e.frames)-1 {
-			continue
-		}
-		r.frame.MergeAt((*e.frames)[e.currentFrame], e.pos)
-	}
-
-	// print each cell of final canvas
-	for y, line := range r.frame.cells {
-		for x, cell := range line {
-			if isWhitespace(cell.Content) {
-				continue
-			}
-			style := tcell.StyleDefault.Foreground(cell.Fg)
-			r.screen.SetContent(x, y, rune(cell.Content), nil, style)
-		}
-	}
-
-	return nil
 }

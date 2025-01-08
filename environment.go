@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
@@ -48,10 +46,6 @@ func Bubble(pos Pos) Entity {
 		Left,
 		func(e *Entity, r *Renderer) {
 			if e.pos.Y < r.seaLevel+3 {
-				ser, _ := json.Marshal(e)
-				if !StringStartsWith([]byte(e.Id), []byte("bubble")) {
-					panic(fmt.Sprintf("%s", ser))
-				}
         e.shouldKill = true
 				// FIX: Looks like this  call is problematic for spawned entities?
 				// r.KillEntity(*e)
