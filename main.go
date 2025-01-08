@@ -101,15 +101,15 @@ func drawCurrent(r *Renderer) {
 	err := r.Draw()
 	check(err)
 
-	elapsed := time.Now().Sub(start)
-
 	if r.debug {
+		elapsed := time.Now().Sub(start)
+    fps := 1 / elapsed.Seconds()
 		ser, err := json.MarshalIndent(r.entities, "", "  ")
 		check(err)
 		lines := []string{
 			fmt.Sprintf("entities: %d", len(r.entities)),
 			fmt.Sprintf("tickRate: %d", r.tickRate),
-			fmt.Sprintf("lastRender: %v", elapsed),
+			fmt.Sprintf("fps: %d", int(fps)),
 			fmt.Sprintf("entities: %s", string(ser)),
 		}
 		for i, line := range lines {

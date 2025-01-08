@@ -46,13 +46,13 @@ func reverseString(s string) string {
 
 // remove leading/trailing newlines from art string
 func trimArt(val string) string {
-  var buff []string
-  for _, line := range strings.Split(val, "\n") {
-    if strings.TrimSpace(line) != "" {
-      buff = append(buff, line) 
-    }
-  }
-  return join(buff)
+	var buff []string
+	for _, line := range strings.Split(val, "\n") {
+		if strings.TrimSpace(line) != "" {
+			buff = append(buff, line)
+		}
+	}
+	return join(buff)
 }
 
 // reverse and padd whitespace
@@ -71,7 +71,7 @@ func reverseArt(s string) string {
 // reverse string and replace mapped ascii symbols
 func mirrorAsciiArt(art string) string {
 	// TODO: expand symbol map
-  // TODO: Preserve text 
+	// TODO: Preserve text
 	symbolMap := map[rune]rune{
 		'<':  '>',
 		'>':  '<',
@@ -103,11 +103,11 @@ func assertEq(a any, b any, msg string) {
 	if a != b {
 		fmt.Println("Assertion failed! ", msg)
 		fmt.Printf("%v == %v\n", a, b)
-    os.Exit(1)
+		os.Exit(1)
 	}
 }
 
-  func ColorFromRune(r rune) tcell.Color {
+func ColorFromRune(r rune) tcell.Color {
 	switch r {
 	case 'r':
 		return tcell.ColorRed
@@ -129,42 +129,38 @@ func assertEq(a any, b any, msg string) {
 	return tcell.ColorNone
 }
 
-
+// Get random fill color
 func RandColor() tcell.Color {
-  switch RNG.IntN(16) {
-  case 1:
-   return tcell.ColorBlack
-  case 2:
-    return tcell.ColorMaroon
-  case 3:
-    return tcell.ColorGreen
-  case 4:
-    return tcell.ColorOlive
-  case 5:
-    return tcell.ColorNavy
-  case 6:
-    return tcell.ColorPurple
-  case 7:
-    return tcell.ColorTeal
-  case 8:
-    return tcell.ColorSilver
-  case 9:
-    return tcell.ColorGray
-  case 10:
-    return tcell.ColorRed
-  case 11:
-    return tcell.ColorLime
-  case 12:
-    return tcell.ColorYellow
-  case 13:
-    return tcell.ColorBlue
-  case 14:
-    return tcell.ColorFuchsia
-  case 15:
-    return tcell.ColorAqua
-  case 16:
-    return tcell.ColorWhite
-  }
+	switch RNG.IntN(14) {
+	case 0:
+		return tcell.ColorMaroon
+	case 1:
+		return tcell.ColorGreen
+	case 2:
+		return tcell.ColorOlive
+	case 3:
+		return tcell.ColorNavy
+	case 4:
+		return tcell.ColorPurple
+	case 5:
+		return tcell.ColorTeal
+	case 6:
+		return tcell.ColorSilver
+	case 7:
+		return tcell.ColorRed
+	case 8:
+		return tcell.ColorLime
+	case 9:
+		return tcell.ColorYellow
+	case 10:
+		return tcell.ColorBlue
+	case 11:
+		return tcell.ColorFuchsia
+	case 12:
+		return tcell.ColorAqua
+	case 13:
+		return tcell.ColorWhite
+	}
   
-  return tcell.ColorNone // unreachable
+	panic("unreachable")
 }

@@ -179,7 +179,7 @@ func (r *Renderer) spawnRandomEntity() {
 		x = -5
 	}
 
-	f := Fish(RNG.IntN(7), facing, RandColor(), Pos{
+	f := Fish(RNG.IntN(6), facing, RandColor(), Pos{
 		Y: r.seaLevel + RNG.IntN(r.frame.height()-r.seaLevel),
 		X: x,
 	})
