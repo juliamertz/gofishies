@@ -69,13 +69,11 @@ func generateFrame(art string, colors string, defaultColor tcell.Color) Frame {
 	return buff
 }
 
-// TODO: rename to engine or something
 type Renderer struct {
 	screen tcell.Screen
 	frame  Frame
 
 	debug      bool
-	entityCaps *EntityCap
 	paused     bool
 	seaLevel   int
 	tickRate   int
@@ -141,28 +139,6 @@ func (r *Renderer) Draw() error {
 	}
 
 	return nil
-}
-
-func (r *Renderer) spawnRandomEntity() {
-	// assume small fish for now
-	facing := Direction(RNG.IntN(2))
-	var x int
-	switch facing {
-	case Left:
-		x = r.frame.width() - 5
-	case Right:
-		x = -5
-	}
-
-	f := Fish(RNG.IntN(6), facing, RandColor(), Pos{
-		Y: r.seaLevel + RNG.IntN(r.frame.height()-r.seaLevel),
-		X: x,
-	})
-
-	f.Id = fmt.Sprintf("%s_%d", f.Id, len(r.entities))
-	r.SpawnEntity(f)
-
-	// r.entities = append(r.entities, f)
 }
 
 func (c *Frame) toString() string {

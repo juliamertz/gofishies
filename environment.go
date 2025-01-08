@@ -47,8 +47,6 @@ func Bubble(pos Pos) Entity {
 		func(e *Entity, r *Renderer) {
 			if e.pos.Y < r.seaLevel+3 {
         e.shouldKill = true
-				// FIX: Looks like this  call is problematic for spawned entities?
-				// r.KillEntity(*e)
 			}
 
 			if e.Tick%20 == 0 {

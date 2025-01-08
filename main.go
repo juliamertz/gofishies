@@ -54,10 +54,39 @@ func mkSea(width int, height int) []Entity {
 	return append(plants, entities...)
 }
 
-type EntityCap struct {
+type EntityCaps struct {
 	smallFish int
 	largeFish int
 	boat      int
+}
+
+type Spawner struct {
+  caps EntityCaps
+  renderer *Renderer
+}
+
+func (s *Spawner) spawnRandomEntity() {
+	// assume small fish for now
+	facing := Direction(RNG.IntN(2))
+	var x int
+	switch facing {
+	case Left:
+		x = s.renderer.frame.width() - 5
+	case Right:
+		x = -5
+	}
+
+	f := Fish(RNG.IntN(6), facing, RandColor(), Pos{
+		Y: s.renderer.seaLevel + RNG.IntN(s.renderer.frame.height()-s.renderer.seaLevel),
+		X: x,
+	})
+
+	f.Id = fmt.Sprintf("%s_%d", f.Id, len(s.renderer.entities))
+	s.renderer.SpawnEntity(f)
+}
+
+func (s *Spawner) spawnEntity(e Entity) {
+  s.renderer.entities = append(s.renderer.entities, e)  
 }
 
 func main() {
@@ -73,8 +102,13 @@ func main() {
 		entities: mkSea(screen.Size()),
 	}
 
+  s := Spawner {
+    renderer: &r,
+    caps: EntityCaps{},
+  }
+
 	defer r.screen.Fini()
-	go eventHandler(&r)
+	go eventHandler(&r, &s)
 
 	for {
 		if r.paused {
@@ -125,7 +159,7 @@ func join(lines []string) string {
 	return strings.Join(lines, "\n")
 }
 
-func eventHandler(r *Renderer) {
+func eventHandler(r *Renderer, s *Spawner) {
 	for {
 		ev := r.screen.PollEvent()
 
@@ -144,7 +178,7 @@ func eventHandler(r *Renderer) {
 
 			switch ev.Rune() {
 			case 's':
-				r.spawnRandomEntity()
+				s.spawnRandomEntity()
 			case 'r':
 				r.entities = mkSea(r.screen.Size())
 			case 'q':

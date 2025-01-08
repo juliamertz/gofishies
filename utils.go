@@ -70,7 +70,6 @@ func reverseArt(s string) string {
 
 // reverse string and replace mapped ascii symbols
 func mirrorAsciiArt(art string) string {
-	// TODO: expand symbol map
 	// TODO: Preserve text
 	symbolMap := map[rune]rune{
 		'<':  '>',
