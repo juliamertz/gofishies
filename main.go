@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"internal/itoa"
 	"os"
 	"slices"
 	"strings"
@@ -70,7 +69,7 @@ type EntityCaps struct {
 }
 
 // get random entity kind that we can spawn
-func (c *EntityCaps) GetKind() EntityKind {
+func (c *EntityCaps) GetKind() *EntityKind {
   // TODO: better way to prevent too many cycles
 	for i := 0; i < 9; i++ {
 		kind := EntityKind(RNG.IntN(2))
@@ -89,13 +88,14 @@ func (c *EntityCaps) GetKind() EntityKind {
 			}
 
 		}
-		return kind
+		return &kind
 	}
 
 	// if c.smallFish < 10 {
 	//   return SmallFish
 	// }
 	//
+  return nil
 }
 
 type Spawner struct {
