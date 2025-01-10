@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -21,8 +20,6 @@ func mkSea(width int, height int) []Entity {
 	entities := []Entity{
 		Waves(Pos{Y: 5}, width),
 		Castle(Left, Pos{X: width - 35, Y: height - 14}),
-		// Fish(1, Right, tcell.ColorBlue, Pos{X: 2, Y: 15}),
-		// Fish(2, Right, tcell.ColorYellow, Pos{X: 40, Y: 24}),
 		Boat(1, Right, Pos{X: 10, Y: 0}),
 		Duck(Right, Pos{X: 5, Y: 5}),
 		Duck(Right, Pos{X: 15, Y: 5}),
@@ -70,7 +67,7 @@ type EntityCaps struct {
 
 // get random entity kind that we can spawn
 func (c *EntityCaps) GetKind() *EntityKind {
-  // TODO: better way to prevent too many cycles
+	// TODO: better way to prevent too many cycles
 	for i := 0; i < 9; i++ {
 		kind := EntityKind(RNG.IntN(2))
 		switch kind {
@@ -91,11 +88,7 @@ func (c *EntityCaps) GetKind() *EntityKind {
 		return &kind
 	}
 
-	// if c.smallFish < 10 {
-	//   return SmallFish
-	// }
-	//
-  return nil
+	return nil
 }
 
 type Spawner struct {
@@ -161,15 +154,14 @@ func main() {
 			s.spawnRandomEntity()
 		}
 
-		drawCurrent(&r)
+		drawCurrent(&r, &s)
 		r.Tick()
 	}
 }
 
-func drawCurrent(r *Renderer) {
+func drawCurrent(r *Renderer, s *Spawner) {
 	// update all entities
 	r.screen.Clear()
-
 	start := time.Now()
 
 	// create empty canvas
@@ -183,7 +175,7 @@ func drawCurrent(r *Renderer) {
 	if r.debug {
 		elapsed := time.Now().Sub(start)
 		fps := 1 / elapsed.Seconds()
-		ser, err := json.MarshalIndent(r.entities, "", "  ")
+		ser, err := json.MarshalIndent(s.caps, "", "  ")
 		check(err)
 		lines := []string{
 			fmt.Sprintf("entities: %d", len(r.entities)),
@@ -198,10 +190,6 @@ func drawCurrent(r *Renderer) {
 
 	r.screen.Show()
 	time.Sleep(time.Duration(10/r.tickRate) * time.Millisecond)
-}
-
-func join(lines []string) string {
-	return strings.Join(lines, "\n")
 }
 
 func eventHandler(r *Renderer, s *Spawner) {
@@ -233,7 +221,7 @@ func eventHandler(r *Renderer, s *Spawner) {
 				r.paused = !r.paused
 			case 'x':
 				r.debug = !r.debug
-				drawCurrent(r)
+				drawCurrent(r, s)
 				r.screen.Show()
 			case 'j':
 				if r.tickRate <= 1 {

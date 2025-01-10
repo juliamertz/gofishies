@@ -25,6 +25,10 @@ func RandOneIn(n int) bool {
 	return j == 1
 }
 
+func join(lines []string) string {
+	return strings.Join(lines, "\n")
+}
+
 func findArtWidth(art string) int {
 	lines := strings.Split(art, "\n")
 	width := 0
