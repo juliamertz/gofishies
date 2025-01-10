@@ -164,6 +164,6 @@ func RandColor() tcell.Color {
 	case 13:
 		return tcell.ColorWhite
 	}
-  
+
 	panic("unreachable")
 }

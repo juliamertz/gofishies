@@ -76,22 +76,22 @@ y
 		})
 	case 5:
 		art = join([]string{
-" /,  ",
-"<')=<",
-" \\`  ",
+			" /,  ",
+			"<')=<",
+			" \\`  ",
 		})
 		colors = join([]string{
-" y,  ",
-"<w)=<",
-" y`  ",
+			" y,  ",
+			"<w)=<",
+			" y`  ",
 		})
-  case 6:
-    art = `
+	case 6:
+		art = `
  __
 /o \/
 \__/\
     `
-    colors = `
+		colors = `
  __
 /w \/
 \__/\
@@ -100,9 +100,10 @@ y
 
 	return createEntity(
 		"fish",
+		SmallFish,
 		[]string{art},
 		[]string{colors},
-    color,
+		color,
 		pos,
 		facing,
 		func(e *Entity, r *Renderer) {
@@ -139,6 +140,7 @@ func Whale(facing Direction, pos Pos) Entity {
 
 	return createEntity(
 		"whale",
+		LargeFish,
 		[]string{art},
 		[]string{colors},
 		tcell.ColorGreen,
@@ -176,6 +178,7 @@ y(')____,
 
 	return createEntity(
 		"duck",
+		Other,
 		art,
 		[]string{colors},
 		tcell.ColorWhite,

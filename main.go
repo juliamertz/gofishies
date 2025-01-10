@@ -24,7 +24,6 @@ func mkSea(width int, height int) []Entity {
 		Duck(Right, Pos{X: 5, Y: 5}),
 		Duck(Right, Pos{X: 15, Y: 5}),
 		Duck(Right, Pos{X: 25, Y: 5}),
-		Whale(Right, Pos{X: 5, Y: 15}),
 	}
 
 	// spawn some seaweed
@@ -51,20 +50,6 @@ func mkSea(width int, height int) []Entity {
 	return append(plants, entities...)
 }
 
-type EntityKind int
-
-const (
-	SmallFish EntityKind = iota
-	LargeFish
-	Vehicle
-)
-
-type EntityCaps struct {
-	smallFish int
-	largeFish int
-	vehicle   int
-}
-
 // get random entity kind that we can spawn
 func (c *EntityCaps) GetKind() *EntityKind {
 	// TODO: better way to prevent too many cycles
@@ -72,15 +57,15 @@ func (c *EntityCaps) GetKind() *EntityKind {
 		kind := EntityKind(RNG.IntN(2))
 		switch kind {
 		case SmallFish:
-			if c.smallFish >= 10 {
+			if c.SmallFish >= 10 {
 				continue
 			}
 		case LargeFish:
-			if c.largeFish >= 2 {
+			if c.LargeFish >= 2 {
 				continue
 			}
 		case Vehicle:
-			if c.vehicle >= 1 {
+			if c.Vehicle >= 1 {
 				continue
 			}
 
@@ -92,14 +77,16 @@ func (c *EntityCaps) GetKind() *EntityKind {
 }
 
 type Spawner struct {
-	caps     EntityCaps
-	renderer *Renderer
+	caps EntityCaps
 }
 
-func (s *Spawner) spawnRandomEntity() {
-	sWidth, sHeight := s.renderer.screen.Size()
+func (r *Renderer) spawnRandomEntity() {
+	kind := r.spawner.caps.GetKind()
+	if kind == nil {
+		return
+	}
 
-	// assume small fish for now
+	sWidth, sHeight := r.screen.Size()
 	facing := Direction(RNG.IntN(2))
 	var x int
 	switch facing {
@@ -108,18 +95,25 @@ func (s *Spawner) spawnRandomEntity() {
 	case Right:
 		x = -5
 	}
-
-	f := Fish(RNG.IntN(6), facing, RandColor(), Pos{
-		Y: s.renderer.seaLevel*2 + RNG.IntN(sHeight-s.renderer.seaLevel),
+	pos := Pos{
+		Y: r.seaLevel*2 + RNG.IntN(sHeight-r.seaLevel),
 		X: x,
-	})
+	}
 
-	f.Id = fmt.Sprintf("%s_%d", f.Id, len(s.renderer.entities))
-	s.renderer.SpawnEntity(f)
+	switch *kind {
+	case SmallFish:
+		f := Fish(RNG.IntN(6), facing, RandColor(), pos)
+		f.Id = fmt.Sprintf("%s_%d", f.Id, len(r.entities))
+		r.SpawnEntity(f)
+	case LargeFish:
+		r.SpawnEntity(Whale(facing, pos))
+	}
+
+	r.spawner.caps.increment(*kind)
 }
 
-func (s *Spawner) spawnEntity(e Entity) {
-	s.renderer.entities = append(s.renderer.entities, e)
+func (r *Renderer) spawnEntity(e Entity) {
+	r.entities = append(r.entities, e)
 }
 
 func main() {
@@ -133,15 +127,13 @@ func main() {
 		paused:   false,
 		screen:   screen,
 		entities: mkSea(screen.Size()),
-	}
-
-	s := Spawner{
-		renderer: &r,
-		caps:     EntityCaps{},
+		spawner: Spawner{
+			caps: EntityCaps{},
+		},
 	}
 
 	defer r.screen.Fini()
-	go eventHandler(&r, &s)
+	go eventHandler(&r)
 
 	for {
 		if r.paused {
@@ -151,15 +143,15 @@ func main() {
 
 		// TODO:
 		if RandOneIn(100) {
-			s.spawnRandomEntity()
+			r.spawnRandomEntity()
 		}
 
-		drawCurrent(&r, &s)
+		drawCurrent(&r)
 		r.Tick()
 	}
 }
 
-func drawCurrent(r *Renderer, s *Spawner) {
+func drawCurrent(r *Renderer) {
 	// update all entities
 	r.screen.Clear()
 	start := time.Now()
@@ -175,7 +167,7 @@ func drawCurrent(r *Renderer, s *Spawner) {
 	if r.debug {
 		elapsed := time.Now().Sub(start)
 		fps := 1 / elapsed.Seconds()
-		ser, err := json.MarshalIndent(s.caps, "", "  ")
+		ser, err := json.MarshalIndent(r.spawner.caps, "", "  ")
 		check(err)
 		lines := []string{
 			fmt.Sprintf("entities: %d", len(r.entities)),
@@ -192,7 +184,7 @@ func drawCurrent(r *Renderer, s *Spawner) {
 	time.Sleep(time.Duration(10/r.tickRate) * time.Millisecond)
 }
 
-func eventHandler(r *Renderer, s *Spawner) {
+func eventHandler(r *Renderer) {
 	for {
 		ev := r.screen.PollEvent()
 
@@ -211,7 +203,7 @@ func eventHandler(r *Renderer, s *Spawner) {
 
 			switch ev.Rune() {
 			case 's':
-				s.spawnRandomEntity()
+				r.spawnRandomEntity()
 			case 'r':
 				r.entities = mkSea(r.screen.Size())
 			case 'q':
@@ -221,7 +213,7 @@ func eventHandler(r *Renderer, s *Spawner) {
 				r.paused = !r.paused
 			case 'x':
 				r.debug = !r.debug
-				drawCurrent(r, s)
+				drawCurrent(r)
 				r.screen.Show()
 			case 'j':
 				if r.tickRate <= 1 {

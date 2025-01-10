@@ -27,6 +27,7 @@ func Waves(pos Pos, width int) Entity {
 
 	return createEntity(
 		"waves",
+		Other,
 		[]string{art},
 		[]string{colors},
 		tcell.ColorWhite,
@@ -39,23 +40,24 @@ func Waves(pos Pos, width int) Entity {
 func Bubble(pos Pos) Entity {
 	return createEntity(
 		"bubble",
+		Other,
 		[]string{".", "o", "O"},
 		[]string{"b"},
 		tcell.ColorGray,
 		pos,
 		Left,
 		func(e *Entity, r *Renderer) {
-      // kill bubble if it approaches the sealine
+			// kill bubble if it approaches the sealine
 			if e.pos.Y < r.seaLevel+3 {
-        e.shouldKill = true
-        return
+				e.shouldKill = true
+				return
 			}
-      // kill bubble in case it collides with another entity
-      collisions := e.GetCollisions(r)
-      // also make sure the bubble isn't killed on spawn with a grace period
-      if len(collisions) > 0 && e.Tick > 100 {
-        e.shouldKill = true
-      }
+			// kill bubble in case it collides with another entity
+			collisions := e.GetCollisions(r)
+			// also make sure the bubble isn't killed on spawn with a grace period
+			if len(collisions) > 0 && e.Tick > 100 {
+				e.shouldKill = true
+			}
 
 			if e.Tick%20 == 0 {
 				e.pos.Y--
@@ -102,6 +104,7 @@ func Castle(facing Direction, pos Pos) Entity {
 
 	return createEntity(
 		"castle",
+		Other,
 		[]string{art},
 		[]string{colors},
 		tcell.ColorGray,
@@ -147,6 +150,7 @@ yywwwyyyyyyyyyyyyyyyyyyyy
 
 	return createEntity(
 		"boat",
+		Vehicle,
 		[]string{art},
 		[]string{colors},
 		tcell.ColorGray,

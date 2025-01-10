@@ -22,6 +22,7 @@ func Seaweed(length int, pos Pos) Entity {
 
 	return createEntity(
 		"seaweed",
+		Other,
 		art,
 		[]string{join(colorParts)},
 		tcell.ColorGreen,

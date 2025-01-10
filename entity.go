@@ -4,6 +4,7 @@ import "github.com/gdamore/tcell/v2"
 
 type Entity struct {
 	Id           string
+	kind         EntityKind
 	pos          Pos
 	Facing       Direction
 	Tick         int
@@ -19,8 +20,19 @@ type Entity struct {
 	update func(*Entity, *Renderer)
 }
 
+type EntityKind int
+
+const (
+	SmallFish EntityKind = iota
+	LargeFish
+	WaterLine
+	Vehicle
+	Other
+)
+
 func createEntity(
 	id string,
+	kind EntityKind,
 	art []string,
 	colorMap []string,
 	defaultColor tcell.Color,
@@ -51,6 +63,7 @@ func createEntity(
 	return Entity{
 		Id:           id,
 		pos:          pos,
+		kind:         kind,
 		Facing:       facing,
 		defaultColor: defaultColor,
 		frames:       &frames,
@@ -101,18 +114,18 @@ func (e *Entity) LikelyBubblePos() Pos {
 }
 
 func (entity *Entity) GetCollisions(r *Renderer) []Entity {
-  var buff []Entity
-  for _, e := range r.entities {
-    if e.Id == entity.Id {
-      continue
-    }
-    b1 := entity.BoundingBox()
-    b2 := e.BoundingBox()
-    if checkCollision(b1, b2) {
-      buff = append(buff, e)
-    }
-  }
-  return buff
+	var buff []Entity
+	for _, e := range r.entities {
+		if e.Id == entity.Id {
+			continue
+		}
+		b1 := entity.BoundingBox()
+		b2 := e.BoundingBox()
+		if checkCollision(b1, b2) {
+			buff = append(buff, e)
+		}
+	}
+	return buff
 }
 
 type BoundingBox struct {
@@ -131,10 +144,10 @@ func (e *Entity) BoundingBox() BoundingBox {
 	w := frame.width()
 	h := frame.height()
 
-  return BoundingBox{
-    xMin: e.pos.X,
-    xMax: e.pos.X + w,
-    yMin: e.pos.Y,
-    yMax: e.pos.Y + h,
-  }
+	return BoundingBox{
+		xMin: e.pos.X,
+		xMax: e.pos.X + w,
+		yMin: e.pos.Y,
+		yMax: e.pos.Y + h,
+	}
 }

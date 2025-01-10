@@ -33,6 +33,13 @@ type Pos struct {
 	Y int
 }
 
+type EntityCaps struct {
+	SmallFish int
+	LargeFish int
+	WaterLine int
+	Vehicle   int
+}
+
 func generateFrame(art string, colors string, defaultColor tcell.Color) Frame {
 	lines := strings.Split(art, "\n")
 	colorLines := strings.Split(colors, "\n")
@@ -70,18 +77,20 @@ func generateFrame(art string, colors string, defaultColor tcell.Color) Frame {
 }
 
 type Renderer struct {
-	screen tcell.Screen
-	frame  Frame
+	screen  tcell.Screen
+	frame   Frame
+	spawner Spawner
 
-	debug      bool
-	paused     bool
-	seaLevel   int
-	tickRate   int
+	debug    bool
+	paused   bool
+	seaLevel int
+	tickRate int
 
 	entities []Entity
 }
 
 func (r *Renderer) KillEntity(idx int) {
+	r.spawner.caps.decrement(r.entities[idx].kind)
 	r.entities = slices.Delete(r.entities, idx, idx+1)
 }
 
@@ -187,5 +196,31 @@ func (c *Frame) MergeAt(art Frame, pos Pos) {
 
 			c.cells[y+i][x+j] = cell
 		}
+	}
+}
+
+func (c *EntityCaps) increment(kind EntityKind) {
+	switch kind {
+	case SmallFish:
+		c.SmallFish++
+	case LargeFish:
+		c.LargeFish++
+	case WaterLine:
+		c.WaterLine++
+	case Vehicle:
+		c.Vehicle++
+	}
+}
+
+func (c *EntityCaps) decrement(kind EntityKind) {
+	switch kind {
+	case SmallFish:
+		c.SmallFish--
+	case LargeFish:
+		c.LargeFish--
+	case WaterLine:
+		c.WaterLine--
+	case Vehicle:
+		c.Vehicle--
 	}
 }
