@@ -113,7 +113,6 @@ func (e *Engine) KillEntity(idx int) {
 }
 
 func (e *Engine) SpawnEntity(entity Entity) {
-	entity.Id = fmt.Sprintf("%s-%d", entity.Id, RNG.IntN(1000000))
 	e.entities = append(e.entities, entity)
 }
 

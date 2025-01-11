@@ -21,7 +21,6 @@ func Seaweed(length int, pos Pos) Entity {
 	art := []string{join(parts), mirrorAsciiArt(join(parts))}
 
 	return createEntity(
-		"seaweed",
 		Other,
 		art,
 		[]string{join(colorParts)},

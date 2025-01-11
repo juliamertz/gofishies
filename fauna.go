@@ -99,7 +99,6 @@ y
 	}
 
 	return createEntity(
-		"fish",
 		SmallFish,
 		[]string{art},
 		[]string{colors},
@@ -139,7 +138,6 @@ func Whale(facing Direction, pos Pos) Entity {
 	})
 
 	return createEntity(
-		"whale",
 		LargeFish,
 		[]string{art},
 		[]string{colors},
@@ -177,7 +175,6 @@ y(')____,
  ('d=~~/`
 
 	return createEntity(
-		"duck",
 		WaterLine,
 		art,
 		[]string{colors},

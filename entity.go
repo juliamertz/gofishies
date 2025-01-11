@@ -3,7 +3,6 @@ package main
 import "github.com/gdamore/tcell/v2"
 
 type Entity struct {
-	Id           string
 	kind         EntityKind
 	pos          Pos
 	Facing       Direction
@@ -32,7 +31,6 @@ const (
 )
 
 func createEntity(
-	id string,
 	kind EntityKind,
 	art []string,
 	colorMap []string,
@@ -62,7 +60,6 @@ func createEntity(
 	}
 
 	return Entity{
-		Id:           id,
 		pos:          pos,
 		kind:         kind,
 		Facing:       facing,
@@ -117,9 +114,6 @@ func (e *Entity) LikelyBubblePos() Pos {
 func (entity *Entity) GetCollisions(r *Engine) []Entity {
 	var buff []Entity
 	for _, e := range r.entities {
-		if e.Id == entity.Id {
-			continue
-		}
 		b1 := entity.BoundingBox()
 		b2 := e.BoundingBox()
 		if checkCollision(b1, b2) {

@@ -26,7 +26,6 @@ func Waves(pos Pos, width int) Entity {
 	}
 
 	return createEntity(
-		"waves",
 		Other,
 		[]string{art},
 		[]string{colors},
@@ -39,7 +38,6 @@ func Waves(pos Pos, width int) Entity {
 
 func Bubble(pos Pos) Entity {
 	return createEntity(
-		"bubble",
 		Other,
 		[]string{".", "o", "O"},
 		[]string{"b"},
@@ -103,7 +101,6 @@ func Castle(facing Direction, pos Pos) Entity {
             yyyyyyy           `
 
 	return createEntity(
-		"castle",
 		Other,
 		[]string{art},
 		[]string{colors},
@@ -149,7 +146,6 @@ yywwwyyyyyyyyyyyyyyyyyyyy
 	}
 
 	return createEntity(
-		"boat",
 		Vehicle,
 		[]string{art},
 		[]string{colors},

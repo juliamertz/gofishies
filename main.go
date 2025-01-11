@@ -103,7 +103,6 @@ func (e *Engine) spawnRandomEntity() {
 	switch *kind {
 	case SmallFish:
 		f := Fish(RNG.IntN(6), facing, RandColor(), pos)
-		f.Id = fmt.Sprintf("%s_%d", f.Id, len(e.entities))
 		e.SpawnEntity(f)
 	case LargeFish:
 		e.SpawnEntity(Whale(facing, pos))
