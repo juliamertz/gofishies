@@ -106,7 +106,7 @@ y
 		color,
 		pos,
 		facing,
-		func(e *Entity, r *Renderer) {
+		func(e *Entity, r *Engine) {
 			if e.Tick%10 == 0 {
 				e.Move(e.Facing)
 				if RandOneIn(30) {
@@ -146,7 +146,7 @@ func Whale(facing Direction, pos Pos) Entity {
 		tcell.ColorGreen,
 		pos,
 		facing,
-		func(e *Entity, r *Renderer) {
+		func(e *Entity, r *Engine) {
 			if e.Tick%20 == 0 {
 				e.Move(e.Facing)
 			}
@@ -184,7 +184,7 @@ y(')____,
 		tcell.ColorWhite,
 		pos,
 		facing,
-		func(e *Entity, r *Renderer) {
+		func(e *Entity, r *Engine) {
 			if e.Tick%30 == 0 {
 				e.Move(e.Facing)
 			}

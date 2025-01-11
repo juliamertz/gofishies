@@ -33,7 +33,7 @@ func Waves(pos Pos, width int) Entity {
 		tcell.ColorWhite,
 		pos,
 		Right, // irrelevant for waves
-		func(e *Entity, r *Renderer) {},
+		func(e *Entity, r *Engine) {},
 	)
 }
 
@@ -46,7 +46,7 @@ func Bubble(pos Pos) Entity {
 		tcell.ColorGray,
 		pos,
 		Left,
-		func(e *Entity, r *Renderer) {
+		func(e *Entity, r *Engine) {
 			// kill bubble if it approaches the sealine
 			if e.pos.Y < r.seaLevel+3 {
 				e.shouldKill = true
@@ -110,7 +110,7 @@ func Castle(facing Direction, pos Pos) Entity {
 		tcell.ColorGray,
 		pos,
 		facing,
-		func(e *Entity, r *Renderer) {},
+		func(e *Entity, r *Engine) {},
 	)
 }
 
@@ -156,7 +156,7 @@ yywwwyyyyyyyyyyyyyyyyyyyy
 		tcell.ColorGray,
 		pos,
 		facing,
-		func(e *Entity, r *Renderer) {
+		func(e *Entity, r *Engine) {
 			if e.Tick%20 == 0 {
 				e.Move(e.Facing)
 			}

@@ -25,9 +25,6 @@ type Frame struct {
 	cells [][]Cell
 }
 
-func (f *Frame) width() int  { return len(f.cells[0]) }
-func (f *Frame) height() int { return len(f.cells) }
-
 type Pos struct {
 	X int
 	Y int
@@ -39,6 +36,22 @@ type EntityCaps struct {
 	WaterLine int
 	Vehicle   int
 }
+
+type Engine struct {
+	screen  tcell.Screen
+	frame   Frame
+	spawner Spawner
+
+	debug    bool
+	paused   bool
+	seaLevel int
+	tickRate int
+
+	entities []Entity
+}
+
+func (f *Frame) width() int  { return len(f.cells[0]) }
+func (f *Frame) height() int { return len(f.cells) }
 
 func generateFrame(art string, colors string, defaultColor tcell.Color) Frame {
 	lines := strings.Split(art, "\n")
@@ -76,83 +89,70 @@ func generateFrame(art string, colors string, defaultColor tcell.Color) Frame {
 	return buff
 }
 
-type Renderer struct {
-	screen  tcell.Screen
-	frame   Frame
-	spawner Spawner
-
-	debug    bool
-	paused   bool
-	seaLevel int
-	tickRate int
-
-	entities []Entity
+func (e *Engine) KillEntity(idx int) {
+	e.spawner.caps.decrement(e.entities[idx].kind)
+	e.entities = slices.Delete(e.entities, idx, idx+1)
 }
 
-func (r *Renderer) KillEntity(idx int) {
-	r.spawner.caps.decrement(r.entities[idx].kind)
-	r.entities = slices.Delete(r.entities, idx, idx+1)
-}
-
-func (r *Renderer) Tick() {
-	for i, e := range slices.Backward(r.entities) {
+func (e *Engine) Tick() {
+	for idx, entity := range slices.Backward(e.entities) {
 		// TODO: figure out why it doesn't update if `e` is passed instead if indexing into r.entities
-		r.entities[i].Tick++
-		if e.IsOffscreen(r.screen.Size()) || e.shouldKill {
-			r.KillEntity(i)
+		e.entities[idx].Tick++
+		if entity.IsOffscreen(e.screen.Size()) || entity.shouldKill {
+			e.KillEntity(idx)
 			continue
 		}
 
-		e.update(&r.entities[i], r)
+		entity.update(&e.entities[idx], e)
 	}
 }
 
-func (r *Renderer) SpawnEntity(e Entity) {
-	e.Id = fmt.Sprintf("%s-%d", e.Id, RNG.IntN(1000000))
-	r.entities = append(r.entities, e)
+func (e *Engine) SpawnEntity(entity Entity) {
+	entity.Id = fmt.Sprintf("%s-%d", entity.Id, RNG.IntN(1000000))
+	e.entities = append(e.entities, entity)
 }
 
-func (r *Renderer) DrawText(content string, pos Pos) {
+func (e *Engine) DrawText(content string, pos Pos) {
 	lines := strings.Split(content, "\n")
 	for i, line := range lines {
 		for j, ch := range line {
 			style := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
-			r.screen.SetContent(pos.X+j, pos.Y+i, ch, nil, style)
+			e.screen.SetContent(pos.X+j, pos.Y+i, ch, nil, style)
 		}
 	}
 }
 
-func (r *Renderer) Draw() error {
-	if r == nil {
+func (e *Engine) Draw() error {
+	if e == nil {
 		return fmt.Errorf("Draw was called but the renderer has no screen set")
 	}
 
 	// render entities
-	for _, e := range r.entities {
+	for _, entity := range e.entities {
 		// TODO: figure out why this is needed
-		if e.currentFrame > len(*e.frames)-1 {
+		if entity.currentFrame > len(*entity.frames)-1 {
 			continue
 		}
-		r.frame.MergeAt((*e.frames)[e.currentFrame], e.pos)
+		e.frame.MergeAt((*entity.frames)[entity.currentFrame], entity.pos)
 	}
 
 	// print each cell of final canvas
-	for y, line := range r.frame.cells {
+	for y, line := range e.frame.cells {
 		for x, cell := range line {
 			if isWhitespace(cell.Content) {
 				continue
 			}
 			style := tcell.StyleDefault.Foreground(cell.Fg)
-			r.screen.SetContent(x, y, rune(cell.Content), nil, style)
+			e.screen.SetContent(x, y, rune(cell.Content), nil, style)
 		}
 	}
 
 	return nil
 }
 
-func (c *Frame) toString() string {
+func (f *Frame) toString() string {
 	buff := ""
-	for _, line := range c.cells {
+	for _, line := range f.cells {
 		for _, cell := range line {
 			buff += string(cell.Content)
 		}
@@ -175,18 +175,18 @@ func makeFrame(width int, height int) Frame {
 }
 
 // Merge canvas cells into parent canvas
-func (c *Frame) MergeAt(art Frame, pos Pos) {
+func (f *Frame) MergeAt(art Frame, pos Pos) {
 	y := pos.Y
 	x := pos.X
 
 	for i, line := range art.cells {
 		// skip line if it falls outside of base canvas
-		if len(c.cells) <= y+i || y+i < 0 {
+		if len(f.cells) <= y+i || y+i < 0 {
 			continue
 		}
 		for j, cell := range line {
 			// skip column if it falls outside of base canvas
-			if len(c.cells[i]) <= x+j || x+j < 0 {
+			if len(f.cells[i]) <= x+j || x+j < 0 {
 				continue
 			}
 			// if content is set to 0 we can assume this cell wasn't initialized so we can ignore it
@@ -194,7 +194,7 @@ func (c *Frame) MergeAt(art Frame, pos Pos) {
 				continue
 			}
 
-			c.cells[y+i][x+j] = cell
+			f.cells[y+i][x+j] = cell
 		}
 	}
 }

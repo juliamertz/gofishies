@@ -29,7 +29,7 @@ func Seaweed(length int, pos Pos) Entity {
 		pos,
 
 		Right, // n.a.
-		func(e *Entity, r *Renderer) {
+		func(e *Entity, r *Engine) {
 			if e.Tick%40 == 0 {
 				e.NextFrame()
 			}

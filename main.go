@@ -80,7 +80,7 @@ type Spawner struct {
 	caps EntityCaps
 }
 
-func (r *Renderer) spawnRandomEntity() {
+func (r *Engine) spawnRandomEntity() {
 	kind := r.spawner.caps.GetKind()
 	if kind == nil {
 		return
@@ -112,16 +112,16 @@ func (r *Renderer) spawnRandomEntity() {
 	r.spawner.caps.increment(*kind)
 }
 
-func (r *Renderer) spawnEntity(e Entity) {
+func (r *Engine) spawnEntity(e Entity) {
 	r.entities = append(r.entities, e)
 }
 
 func main() {
 	screen, err := tcell.NewScreen()
 	check(err)
-	err = screen.Init()
-	check(err)
-	r := Renderer{
+	check(screen.Init())
+
+	e := Engine{
 		tickRate: 2,
 		seaLevel: 5,
 		paused:   false,
@@ -132,103 +132,103 @@ func main() {
 		},
 	}
 
-	defer r.screen.Fini()
-	go eventHandler(&r)
+	defer e.screen.Fini()
+	go eventHandler(&e)
 
 	for {
-		if r.paused {
-			time.Sleep(time.Duration(r.tickRate) * time.Millisecond)
+		if e.paused {
+			time.Sleep(time.Duration(e.tickRate) * time.Millisecond)
 			continue
 		}
 
 		// TODO:
 		if RandOneIn(100) {
-			r.spawnRandomEntity()
+			e.spawnRandomEntity()
 		}
 
-		drawCurrent(&r)
-		r.Tick()
+		drawCurrent(&e)
+		e.Tick()
 	}
 }
 
-func drawCurrent(r *Renderer) {
+func drawCurrent(e *Engine) {
 	// update all entities
-	r.screen.Clear()
+	e.screen.Clear()
 	start := time.Now()
 
 	// create empty canvas
-	width, height := r.screen.Size()
-	r.frame = makeFrame(width, height)
+	width, height := e.screen.Size()
+	e.frame = makeFrame(width, height)
 
 	// draw all entities to canvas
-	err := r.Draw()
+	err := e.Draw()
 	check(err)
 
-	if r.debug {
+	if e.debug {
 		elapsed := time.Now().Sub(start)
 		fps := 1 / elapsed.Seconds()
-		ser, err := json.MarshalIndent(r.spawner.caps, "", "  ")
+		ser, err := json.MarshalIndent(e.spawner.caps, "", "  ")
 		check(err)
 		lines := []string{
-			fmt.Sprintf("entities: %d", len(r.entities)),
-			fmt.Sprintf("tickRate: %d", r.tickRate),
+			fmt.Sprintf("entities: %d", len(e.entities)),
+			fmt.Sprintf("tickRate: %d", e.tickRate),
 			fmt.Sprintf("fps: %d", int(fps)),
 			fmt.Sprintf("entities: %s", string(ser)),
 		}
 		for i, line := range lines {
-			r.DrawText(line, Pos{Y: i})
+			e.DrawText(line, Pos{Y: i})
 		}
 	}
 
-	r.screen.Show()
-	time.Sleep(time.Duration(10/r.tickRate) * time.Millisecond)
+	e.screen.Show()
+	time.Sleep(time.Duration(10/e.tickRate) * time.Millisecond)
 }
 
-func eventHandler(r *Renderer) {
+func eventHandler(e *Engine) {
 	for {
-		ev := r.screen.PollEvent()
+		ev := e.screen.PollEvent()
 
 		switch ev := ev.(type) {
 		case *tcell.EventResize:
-			r.entities = mkSea(r.screen.Size())
+			e.entities = mkSea(e.screen.Size())
 		case *tcell.EventKey:
 			// FIX: this doesn't work for some reason...
 			// switch ev.Key() {
 			// case tcell.KeyEscape | tcell.KeyCtrlC:
 			// }
 			if ev.Key() == tcell.Key(3) {
-				r.screen.Fini()
+				e.screen.Fini()
 				os.Exit(0)
 			}
 
 			switch ev.Rune() {
 			case 's':
-				r.spawnRandomEntity()
+				e.spawnRandomEntity()
 			case 'r':
-				r.entities = mkSea(r.screen.Size())
+				e.entities = mkSea(e.screen.Size())
 			case 'q':
-				r.screen.Fini()
+				e.screen.Fini()
 				os.Exit(0)
 			case ' ':
-				r.paused = !r.paused
+				e.paused = !e.paused
 			case 'x':
-				r.debug = !r.debug
-				drawCurrent(r)
-				r.screen.Show()
+				e.debug = !e.debug
+				drawCurrent(e)
+				e.screen.Show()
 			case 'j':
-				if r.tickRate <= 1 {
+				if e.tickRate <= 1 {
 					continue
 				}
-				if r.tickRate < 10 {
-					r.tickRate -= 1
+				if e.tickRate < 10 {
+					e.tickRate -= 1
 				} else {
-					r.tickRate -= 5
+					e.tickRate -= 5
 				}
 			case 'k':
-				if r.tickRate < 10 {
-					r.tickRate += 1
+				if e.tickRate < 10 {
+					e.tickRate += 1
 				} else {
-					r.tickRate += 5
+					e.tickRate += 5
 				}
 			}
 		}

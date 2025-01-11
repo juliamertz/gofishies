@@ -17,7 +17,7 @@ type Entity struct {
 	width  int
 	height int
 
-	update func(*Entity, *Renderer)
+	update func(*Entity, *Engine)
 }
 
 type EntityKind int
@@ -38,7 +38,7 @@ func createEntity(
 	defaultColor tcell.Color,
 	pos Pos,
 	facing Direction,
-	update func(*Entity, *Renderer),
+	update func(*Entity, *Engine),
 ) Entity {
 	var frames []Frame
 	// generate frames for entity
@@ -113,7 +113,7 @@ func (e *Entity) LikelyBubblePos() Pos {
 	return Pos{X: x, Y: e.pos.Y + (e.height / 2)}
 }
 
-func (entity *Entity) GetCollisions(r *Renderer) []Entity {
+func (entity *Entity) GetCollisions(r *Engine) []Entity {
 	var buff []Entity
 	for _, e := range r.entities {
 		if e.Id == entity.Id {
