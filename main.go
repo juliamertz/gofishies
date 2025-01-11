@@ -21,9 +21,6 @@ func mkSea(width int, height int) []Entity {
 		Waves(Pos{Y: 5}, width),
 		Castle(Left, Pos{X: width - 35, Y: height - 14}),
 		Boat(1, Right, Pos{X: 10, Y: 0}),
-		Duck(Right, Pos{X: 5, Y: 5}),
-		Duck(Right, Pos{X: 15, Y: 5}),
-		Duck(Right, Pos{X: 25, Y: 5}),
 	}
 
 	// spawn some seaweed
@@ -54,7 +51,7 @@ func mkSea(width int, height int) []Entity {
 func (c *EntityCaps) GetKind() *EntityKind {
 	// TODO: better way to prevent too many cycles
 	for i := 0; i < 9; i++ {
-		kind := EntityKind(RNG.IntN(2))
+		kind := EntityKind(RNG.IntN(3))
 		switch kind {
 		case SmallFish:
 			if c.SmallFish >= 10 {
@@ -66,6 +63,10 @@ func (c *EntityCaps) GetKind() *EntityKind {
 			}
 		case Vehicle:
 			if c.Vehicle >= 1 {
+				continue
+			}
+		case WaterLine:
+			if c.WaterLine >= 2 {
 				continue
 			}
 
@@ -80,13 +81,13 @@ type Spawner struct {
 	caps EntityCaps
 }
 
-func (r *Engine) spawnRandomEntity() {
-	kind := r.spawner.caps.GetKind()
+func (e *Engine) spawnRandomEntity() {
+	kind := e.spawner.caps.GetKind()
 	if kind == nil {
 		return
 	}
 
-	sWidth, sHeight := r.screen.Size()
+	sWidth, sHeight := e.screen.Size()
 	facing := Direction(RNG.IntN(2))
 	var x int
 	switch facing {
@@ -96,20 +97,24 @@ func (r *Engine) spawnRandomEntity() {
 		x = -5
 	}
 	pos := Pos{
-		Y: r.seaLevel*2 + RNG.IntN(sHeight-r.seaLevel),
+		Y: e.seaLevel*2 + RNG.IntN(sHeight-e.seaLevel),
 		X: x,
 	}
 
 	switch *kind {
 	case SmallFish:
 		f := Fish(RNG.IntN(6), facing, RandColor(), pos)
-		f.Id = fmt.Sprintf("%s_%d", f.Id, len(r.entities))
-		r.SpawnEntity(f)
+		f.Id = fmt.Sprintf("%s_%d", f.Id, len(e.entities))
+		e.SpawnEntity(f)
 	case LargeFish:
-		r.SpawnEntity(Whale(facing, pos))
+		e.SpawnEntity(Whale(facing, pos))
+
+	case WaterLine:
+		pos.Y = e.seaLevel
+		e.SpawnEntity(Duck(facing, pos))
 	}
 
-	r.spawner.caps.increment(*kind)
+	e.spawner.caps.increment(*kind)
 }
 
 func (r *Engine) spawnEntity(e Entity) {
@@ -190,7 +195,7 @@ func eventHandler(e *Engine) {
 
 		switch ev := ev.(type) {
 		case *tcell.EventResize:
-			e.entities = mkSea(e.screen.Size())
+			e.Reset(mkSea(e.screen.Size()))
 		case *tcell.EventKey:
 			// FIX: this doesn't work for some reason...
 			// switch ev.Key() {
@@ -205,7 +210,7 @@ func eventHandler(e *Engine) {
 			case 's':
 				e.spawnRandomEntity()
 			case 'r':
-				e.entities = mkSea(e.screen.Size())
+				e.Reset(mkSea(e.screen.Size()))
 			case 'q':
 				e.screen.Fini()
 				os.Exit(0)

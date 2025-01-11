@@ -178,7 +178,7 @@ y(')____,
 
 	return createEntity(
 		"duck",
-		Other,
+		WaterLine,
 		art,
 		[]string{colors},
 		tcell.ColorWhite,

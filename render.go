@@ -89,11 +89,6 @@ func generateFrame(art string, colors string, defaultColor tcell.Color) Frame {
 	return buff
 }
 
-func (e *Engine) KillEntity(idx int) {
-	e.spawner.caps.decrement(e.entities[idx].kind)
-	e.entities = slices.Delete(e.entities, idx, idx+1)
-}
-
 func (e *Engine) Tick() {
 	for idx, entity := range slices.Backward(e.entities) {
 		// TODO: figure out why it doesn't update if `e` is passed instead if indexing into r.entities
@@ -105,6 +100,16 @@ func (e *Engine) Tick() {
 
 		entity.update(&e.entities[idx], e)
 	}
+}
+
+func (e *Engine) Reset(entities []Entity) {
+	e.entities = entities
+	e.spawner.caps = EntityCaps{}
+}
+
+func (e *Engine) KillEntity(idx int) {
+	e.spawner.caps.decrement(e.entities[idx].kind)
+	e.entities = slices.Delete(e.entities, idx, idx+1)
 }
 
 func (e *Engine) SpawnEntity(entity Entity) {
