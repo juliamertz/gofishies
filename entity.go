@@ -27,6 +27,7 @@ const (
 	LargeFish
 	WaterLine
 	Vehicle
+
 	Other
 )
 

@@ -20,7 +20,6 @@ func mkSea(width int, height int) []Entity {
 	entities := []Entity{
 		Waves(Pos{Y: 5}, width),
 		Castle(Left, Pos{X: width - 35, Y: height - 14}),
-		Boat(1, Right, Pos{X: 10, Y: 0}),
 	}
 
 	// spawn some seaweed
@@ -51,7 +50,7 @@ func mkSea(width int, height int) []Entity {
 func (c *EntityCaps) GetKind() *EntityKind {
 	// TODO: better way to prevent too many cycles
 	for i := 0; i < 9; i++ {
-		kind := EntityKind(RNG.IntN(3))
+		kind := EntityKind(RNG.IntN(4))
 		switch kind {
 		case SmallFish:
 			if c.SmallFish >= 10 {
@@ -112,6 +111,10 @@ func (e *Engine) spawnRandomEntity() {
 	case WaterLine:
 		pos.Y = e.seaLevel
 		e.SpawnEntity(Duck(facing, pos))
+
+	case Vehicle:
+		pos.Y = e.seaLevel - 5
+		e.SpawnEntity(Boat(RNG.IntN(2), facing, pos))
 	}
 
 	e.spawner.caps.increment(*kind)
